@@ -1,5 +1,7 @@
 package common
 
+import "math/rand/v2"
+
 type Object struct {
 	// The gopher's position
 	X16  int
@@ -8,6 +10,21 @@ type Object struct {
 
 	// Pipes
 	PipeTileYs []int
+}
+
+func NewObject(initX16, initY16, initVy16 int, pipeKey string) *Object {
+	pipeTileYs := make([]int, 256)
+	seed := [32]byte([]byte(pipeKey))
+	r := rand.New(rand.NewChaCha8(seed))
+	for i := range pipeTileYs {
+		pipeTileYs[i] = r.IntN(6) + 2
+	}
+	return &Object{
+		X16:        initX16,
+		Y16:        initY16,
+		Vy16:       initVy16,
+		PipeTileYs: pipeTileYs,
+	}
 }
 
 func (o *Object) PipeAt(tileX int) (tileY int, ok bool) {

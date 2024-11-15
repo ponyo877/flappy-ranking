@@ -3,16 +3,17 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/ponyo877/flappy-standings/common"
 )
 
 func main() {
-	server := &Server{}
+	server := NewServer(NewScoreUsecase())
 	mux := http.NewServeMux()
-	mux.HandleFunc("/hello", server.helloHandler)
-	mux.HandleFunc("/score", server.scoreHandler)
+	mux.HandleFunc("GET /hello", server.helloHandler)
+	mux.HandleFunc("POST /score", server.scoreHandler)
 	http.ListenAndServe(":8080", mux)
 }
 
@@ -20,20 +21,25 @@ type Server struct {
 	usecase Usecase
 }
 
+func NewServer(usecase Usecase) *Server {
+	return &Server{usecase: usecase}
+}
+
 func (s *Server) helloHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello World")
 }
 
 func (s *Server) scoreHandler(w http.ResponseWriter, r *http.Request) {
-	var requestBody struct {
-		JumpHistory []int `json:"jumpHistory"`
+	var req struct {
+		JumpHistory []int  `json:"jumpHistory"`
+		PipeKey     string `json:"pipeKey"`
 	}
-	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Printf("Failed to decode request body: %v", err)
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
-	jumpHistory := requestBody.JumpHistory
-	score, err := s.usecase.getScore(jumpHistory)
+	score, err := s.usecase.getScore(req.JumpHistory, req.PipeKey)
 	if err != nil {
 		http.Error(w, "Failed to get score", http.StatusInternalServerError)
 		return
@@ -48,7 +54,7 @@ func (s *Server) scoreHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type Usecase interface {
-	getScore(jumpHistory []int) (int, error)
+	getScore(jumpHistory []int, pipeKey string) (int, error)
 }
 
 type ScoreUsecase struct{}
@@ -57,42 +63,72 @@ func NewScoreUsecase() Usecase {
 	return &ScoreUsecase{}
 }
 
-func (u *ScoreUsecase) getScore(jumpHistory []int) (int, error) {
-	x16 := common.InitialX16
-	y16 := common.InitialY16
-	vy16 := 0
-	x16 += common.DeltaX16
-	isHit := false
-	for _, j := range jumpHistory {
-		for x16 < j {
-			if hit() {
-				isHit = true
-				break
-			}
-			x16 += common.DeltaX16
-			y16 += vy16
-			// Gravity
-			vy16 += common.DeltaVy16
-			if vy16 > common.VyLimit {
-				vy16 = common.VyLimit
-			}
+// curl -X POST http://localhost:8080/score -H "Content-Type: application/json" -d '{"jumpHistory":[1248,2400,3488,5056,6400,7872,9984,11488,12992,14688,16000,17984,19520,20960,22304,23200,24640],"pipeKey":"ABCDEFGHIJKLMNOPQRSTUVWXYZ123456"}' | jq .
+func (u *ScoreUsecase) getScore(jumpHistory []int, pipeKey string) (int, error) {
+	obj := common.NewObject(common.InitialX16, common.InitialY16, 0, pipeKey)
+	// isHit := false
+	// g.obj.X16 += common.DeltaX16
+	// g.cameraX += common.DeltaCameraX
+	// if g.isKeyJustPressed() {
+	// 	g.jumpHistory = append(g.jumpHistory, g.obj.X16)
+	// 	g.obj.Vy16 = -common.VyLimit
+	// 	if err := g.jumpPlayer.Rewind(); err != nil {
+	// 		return err
+	// 	}
+	// 	g.jumpPlayer.Play()
+	// }
+	// g.obj.Y16 += g.obj.Vy16
+
+	// // Gravity
+	// g.obj.Vy16 += common.DeltaVy16
+	// if g.obj.Vy16 > common.VyLimit {
+	// 	g.obj.Vy16 = common.VyLimit
+	// }
+
+	// if g.obj.Hit() {
+	// 	log.Printf("debug jumpHistory: %v", g.jumpHistory)
+	// 	g.jumpHistory = []int{}
+	// 	if err := g.hitPlayer.Rewind(); err != nil {
+	// 		return err
+	// 	}
+	// 	g.hitPlayer.Play()
+	// 	g.mode = ModeGameOver
+	// 	g.gameoverCount = 30
+	// }
+	i := 0
+	for {
+		obj.X16 += common.DeltaX16
+		if jumpHistory[i] == obj.X16 {
+			i++
+			obj.Vy16 = -common.VyLimit
 		}
-		if isHit {
+		obj.Y16 += obj.Vy16
+		obj.Vy16 += common.DeltaVy16
+		if obj.Vy16 > common.VyLimit {
+			obj.Vy16 = common.VyLimit
+		}
+		if obj.Hit() {
 			break
 		}
-		vy16 = -common.VyLimit
 	}
-	return score(x16), nil
-}
-
-func hit() bool {
-	return false
-}
-
-func score(x16 int) int {
-	x := common.FloorDiv(x16, common.Unit) / common.TileSize
-	if (x - common.PipeStartOffsetX) <= 0 {
-		return 0
-	}
-	return common.FloorDiv(x-common.PipeStartOffsetX, common.PipeIntervalX)
+	// for _, j := range jumpHistory {
+	// 	for obj.X16 < j {
+	// 		if obj.Hit() {
+	// 			isHit = true
+	// 			break
+	// 		}
+	// 		obj.X16 += common.DeltaX16
+	// 		obj.Y16 += obj.Vy16
+	// 		// Gravity
+	// 		obj.Vy16 += common.DeltaVy16
+	// 		if obj.Vy16 > common.VyLimit {
+	// 			obj.Vy16 = common.VyLimit
+	// 		}
+	// 	}
+	// 	if isHit {
+	// 		break
+	// 	}
+	// 	obj.Vy16 = -common.VyLimit
+	// }
+	return obj.Score(), nil
 }

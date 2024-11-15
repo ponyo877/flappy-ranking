@@ -201,6 +201,7 @@ func (g *Game) Update() error {
 		}
 
 		if g.obj.Hit() {
+			log.Printf("debug jumpHistory: %v", g.jumpHistory)
 			g.jumpHistory = []int{}
 			if err := g.hitPlayer.Rewind(); err != nil {
 				return err
