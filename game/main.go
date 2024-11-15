@@ -36,6 +36,7 @@ import (
 	resources "github.com/hajimehoshi/ebiten/v2/examples/resources/images/flappy"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
+	"github.com/ponyo877/flappy-standings/config"
 )
 
 func floorDiv(x, y int) int {
@@ -50,27 +51,27 @@ func floorMod(x, y int) int {
 	return x - floorDiv(x, y)*y
 }
 
-const (
-	screenWidth      = 640
-	screenHeight     = 480
-	tileSize         = 32
-	titleFontSize    = fontSize * 1.5
-	fontSize         = 24
-	smallFontSize    = fontSize / 2
-	pipeWidth        = tileSize * 2
-	pipeStartOffsetX = 8
-	pipeIntervalX    = 8
-	pipeGapY         = 5
-	initialX16       = 0
-	initialY16       = 100 * 16
-	initialCameraX   = -240
-	initialCameraY   = 0
-	unit             = 16
-	vyLimit          = 96
-	deltaX16         = 32
-	deltaVY16        = 4
-	deltaCameraX     = 2
-)
+// const (
+// 	screenWidth      = 640
+// 	screenHeight     = 480
+// 	tileSize         = 32
+// 	titleFontSize    = fontSize * 1.5
+// 	fontSize         = 24
+// 	smallFontSize    = fontSize / 2
+// 	pipeWidth        = tileSize * 2
+// 	pipeStartOffsetX = 8
+// 	pipeIntervalX    = 8
+// 	pipeGapY         = 5
+// 	initialX16       = 0
+// 	initialY16       = 100 * 16
+// 	initialCameraX   = -240
+// 	initialCameraY   = 0
+// 	unit             = 16
+// 	vyLimit          = 96
+// 	deltaX16         = 32
+// 	deltaVY16        = 4
+// 	deltaCameraX     = 2
+// )
 
 var (
 	gopherImage      *ebiten.Image
@@ -142,10 +143,10 @@ func NewGame() ebiten.Game {
 }
 
 func (g *Game) init() {
-	g.x16 = initialX16
-	g.y16 = initialY16
-	g.cameraX = initialCameraX
-	g.cameraY = initialCameraY
+	g.x16 = config.InitialX16
+	g.y16 = config.InitialY16
+	g.cameraX = config.InitialCameraX
+	g.cameraY = config.InitialCameraY
 	g.pipeTileYs = make([]int, 256)
 	randomKey := "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456"
 	seed := [32]byte([]byte(randomKey))
@@ -212,7 +213,7 @@ func (g *Game) isKeyJustPressed() bool {
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
-	return screenWidth, screenHeight
+	return config.ScreenWidth, config.ScreenHeight
 }
 
 func (g *Game) Update() error {
@@ -222,11 +223,11 @@ func (g *Game) Update() error {
 			g.mode = ModeGame
 		}
 	case ModeGame:
-		g.x16 += deltaX16
-		g.cameraX += deltaCameraX
+		g.x16 += config.DeltaX16
+		g.cameraX += config.DeltaCameraX
 		if g.isKeyJustPressed() {
 			g.jumpHistory = append(g.jumpHistory, g.x16)
-			g.vy16 = -vyLimit
+			g.vy16 = -config.VyLimit
 			if err := g.jumpPlayer.Rewind(); err != nil {
 				return err
 			}
@@ -235,9 +236,9 @@ func (g *Game) Update() error {
 		g.y16 += g.vy16
 
 		// Gravity
-		g.vy16 += deltaVY16
-		if g.vy16 > vyLimit {
-			g.vy16 = vyLimit
+		g.vy16 += config.DeltaVy16
+		if g.vy16 > config.VyLimit {
+			g.vy16 = config.VyLimit
 		}
 
 		if g.hit() {
@@ -279,70 +280,70 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 
 	op := &text.DrawOptions{}
-	op.GeoM.Translate(screenWidth/2, 3*titleFontSize)
+	op.GeoM.Translate(config.ScreenWidth/2, 3*config.TitleFontSize)
 	op.ColorScale.ScaleWithColor(color.White)
-	op.LineSpacing = titleFontSize
+	op.LineSpacing = config.TitleFontSize
 	op.PrimaryAlign = text.AlignCenter
 	text.Draw(screen, titleTexts, &text.GoTextFace{
 		Source: arcadeFaceSource,
-		Size:   titleFontSize,
+		Size:   config.TitleFontSize,
 	}, op)
 
 	op = &text.DrawOptions{}
-	op.GeoM.Translate(screenWidth/2, 3*titleFontSize)
+	op.GeoM.Translate(config.ScreenWidth/2, 3*config.TitleFontSize)
 	op.ColorScale.ScaleWithColor(color.White)
-	op.LineSpacing = fontSize
+	op.LineSpacing = config.FontSize
 	op.PrimaryAlign = text.AlignCenter
 	text.Draw(screen, texts, &text.GoTextFace{
 		Source: arcadeFaceSource,
-		Size:   fontSize,
+		Size:   config.FontSize,
 	}, op)
 
 	if g.mode == ModeTitle {
 		const msg = "Go Gopher by Renee French is\nlicenced under CC BY 3.0."
 
 		op := &text.DrawOptions{}
-		op.GeoM.Translate(screenWidth/2, screenHeight-smallFontSize/2)
+		op.GeoM.Translate(config.ScreenWidth/2, config.ScreenHeight-config.SmallFontSize/2)
 		op.ColorScale.ScaleWithColor(color.White)
-		op.LineSpacing = smallFontSize
+		op.LineSpacing = config.SmallFontSize
 		op.PrimaryAlign = text.AlignCenter
 		op.SecondaryAlign = text.AlignEnd
 		text.Draw(screen, msg, &text.GoTextFace{
 			Source: arcadeFaceSource,
-			Size:   smallFontSize,
+			Size:   config.SmallFontSize,
 		}, op)
 	}
 
 	op = &text.DrawOptions{}
-	op.GeoM.Translate(screenWidth, 0)
+	op.GeoM.Translate(config.ScreenWidth, 0)
 	op.ColorScale.ScaleWithColor(color.White)
-	op.LineSpacing = fontSize
+	op.LineSpacing = config.FontSize
 	op.PrimaryAlign = text.AlignEnd
 	text.Draw(screen, fmt.Sprintf("%04d", g.score()), &text.GoTextFace{
 		Source: arcadeFaceSource,
-		Size:   fontSize,
+		Size:   config.FontSize,
 	}, op)
 
 	ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %0.2f", ebiten.ActualTPS()))
 }
 
 func (g *Game) pipeAt(tileX int) (tileY int, ok bool) {
-	if (tileX - pipeStartOffsetX) <= 0 {
+	if (tileX - config.PipeStartOffsetX) <= 0 {
 		return 0, false
 	}
-	if floorMod(tileX-pipeStartOffsetX, pipeIntervalX) != 0 {
+	if floorMod(tileX-config.PipeStartOffsetX, config.PipeIntervalX) != 0 {
 		return 0, false
 	}
-	idx := floorDiv(tileX-pipeStartOffsetX, pipeIntervalX)
+	idx := floorDiv(tileX-config.PipeStartOffsetX, config.PipeIntervalX)
 	return g.pipeTileYs[idx%len(g.pipeTileYs)], true
 }
 
 func (g *Game) score() int {
-	x := floorDiv(g.x16, unit) / tileSize
-	if (x - pipeStartOffsetX) <= 0 {
+	x := floorDiv(g.x16, config.Unit) / config.TileSize
+	if (x - config.PipeStartOffsetX) <= 0 {
 		return 0
 	}
-	return floorDiv(x-pipeStartOffsetX, pipeIntervalX)
+	return floorDiv(x-config.PipeStartOffsetX, config.PipeIntervalX)
 }
 
 func (g *Game) hit() bool {
@@ -354,33 +355,33 @@ func (g *Game) hit() bool {
 		gopherHeight = 60
 	)
 	w, h := gopherImage.Bounds().Dx(), gopherImage.Bounds().Dy()
-	x0 := floorDiv(g.x16, unit) + (w-gopherWidth)/2
-	y0 := floorDiv(g.y16, unit) + (h-gopherHeight)/2
+	x0 := floorDiv(g.x16, config.Unit) + (w-gopherWidth)/2
+	y0 := floorDiv(g.y16, config.Unit) + (h-gopherHeight)/2
 	x1 := x0 + gopherWidth
 	y1 := y0 + gopherHeight
-	if y0 < -tileSize*4 {
+	if y0 < -config.TileSize*4 {
 		return true
 	}
-	if y1 >= screenHeight-tileSize {
+	if y1 >= config.ScreenHeight-config.TileSize {
 		return true
 	}
-	xMin := floorDiv(x0-pipeWidth, tileSize)
-	xMax := floorDiv(x0+gopherWidth, tileSize)
+	xMin := floorDiv(x0-config.PipeWidth, config.TileSize)
+	xMax := floorDiv(x0+gopherWidth, config.TileSize)
 	for x := xMin; x <= xMax; x++ {
 		y, ok := g.pipeAt(x)
 		if !ok {
 			continue
 		}
-		if x0 >= x*tileSize+pipeWidth {
+		if x0 >= x*config.TileSize+config.PipeWidth {
 			continue
 		}
-		if x1 < x*tileSize {
+		if x1 < x*config.TileSize {
 			continue
 		}
-		if y0 < y*tileSize {
+		if y0 < y*config.TileSize {
 			return true
 		}
-		if y1 >= (y+pipeGapY)*tileSize {
+		if y1 >= (y+config.PipeGapY)*config.TileSize {
 			return true
 		}
 	}
@@ -389,8 +390,8 @@ func (g *Game) hit() bool {
 
 func (g *Game) drawTiles(screen *ebiten.Image) {
 	const (
-		nx           = screenWidth / tileSize
-		ny           = screenHeight / tileSize
+		nx           = config.ScreenWidth / config.TileSize
+		ny           = config.ScreenHeight / config.TileSize
 		pipeTileSrcX = 128
 		pipeTileSrcY = 192
 	)
@@ -399,35 +400,35 @@ func (g *Game) drawTiles(screen *ebiten.Image) {
 	for i := -2; i < nx+1; i++ {
 		// ground
 		op.GeoM.Reset()
-		op.GeoM.Translate(float64(i*tileSize-floorMod(g.cameraX, tileSize)),
-			float64((ny-1)*tileSize-floorMod(g.cameraY, tileSize)))
-		screen.DrawImage(tilesImage.SubImage(image.Rect(0, 0, tileSize, tileSize)).(*ebiten.Image), op)
+		op.GeoM.Translate(float64(i*config.TileSize-floorMod(g.cameraX, config.TileSize)),
+			float64((ny-1)*config.TileSize-floorMod(g.cameraY, config.TileSize)))
+		screen.DrawImage(tilesImage.SubImage(image.Rect(0, 0, config.TileSize, config.TileSize)).(*ebiten.Image), op)
 
 		// pipe
-		if tileY, ok := g.pipeAt(floorDiv(g.cameraX, tileSize) + i); ok {
+		if tileY, ok := g.pipeAt(floorDiv(g.cameraX, config.TileSize) + i); ok {
 			for j := 0; j < tileY; j++ {
 				op.GeoM.Reset()
 				op.GeoM.Scale(1, -1)
-				op.GeoM.Translate(float64(i*tileSize-floorMod(g.cameraX, tileSize)),
-					float64(j*tileSize-floorMod(g.cameraY, tileSize)))
-				op.GeoM.Translate(0, tileSize)
+				op.GeoM.Translate(float64(i*config.TileSize-floorMod(g.cameraX, config.TileSize)),
+					float64(j*config.TileSize-floorMod(g.cameraY, config.TileSize)))
+				op.GeoM.Translate(0, config.TileSize)
 				var r image.Rectangle
 				if j == tileY-1 {
-					r = image.Rect(pipeTileSrcX, pipeTileSrcY, pipeTileSrcX+tileSize*2, pipeTileSrcY+tileSize)
+					r = image.Rect(pipeTileSrcX, pipeTileSrcY, pipeTileSrcX+config.TileSize*2, pipeTileSrcY+config.TileSize)
 				} else {
-					r = image.Rect(pipeTileSrcX, pipeTileSrcY+tileSize, pipeTileSrcX+tileSize*2, pipeTileSrcY+tileSize*2)
+					r = image.Rect(pipeTileSrcX, pipeTileSrcY+config.TileSize, pipeTileSrcX+config.TileSize*2, pipeTileSrcY+config.TileSize*2)
 				}
 				screen.DrawImage(tilesImage.SubImage(r).(*ebiten.Image), op)
 			}
-			for j := tileY + pipeGapY; j < screenHeight/tileSize-1; j++ {
+			for j := tileY + config.PipeGapY; j < config.ScreenHeight/config.TileSize-1; j++ {
 				op.GeoM.Reset()
-				op.GeoM.Translate(float64(i*tileSize-floorMod(g.cameraX, tileSize)),
-					float64(j*tileSize-floorMod(g.cameraY, tileSize)))
+				op.GeoM.Translate(float64(i*config.TileSize-floorMod(g.cameraX, config.TileSize)),
+					float64(j*config.TileSize-floorMod(g.cameraY, config.TileSize)))
 				var r image.Rectangle
-				if j == tileY+pipeGapY {
-					r = image.Rect(pipeTileSrcX, pipeTileSrcY, pipeTileSrcX+pipeWidth, pipeTileSrcY+tileSize)
+				if j == tileY+config.PipeGapY {
+					r = image.Rect(pipeTileSrcX, pipeTileSrcY, pipeTileSrcX+config.PipeWidth, pipeTileSrcY+config.TileSize)
 				} else {
-					r = image.Rect(pipeTileSrcX, pipeTileSrcY+tileSize, pipeTileSrcX+pipeWidth, pipeTileSrcY+tileSize+tileSize)
+					r = image.Rect(pipeTileSrcX, pipeTileSrcY+config.TileSize, pipeTileSrcX+config.PipeWidth, pipeTileSrcY+config.TileSize+config.TileSize)
 				}
 				screen.DrawImage(tilesImage.SubImage(r).(*ebiten.Image), op)
 			}
@@ -448,7 +449,7 @@ func (g *Game) drawGopher(screen *ebiten.Image) {
 
 func main() {
 	flag.Parse()
-	ebiten.SetWindowSize(screenWidth, screenHeight)
+	ebiten.SetWindowSize(config.ScreenWidth, config.ScreenHeight)
 	ebiten.SetWindowTitle("Flappy Gopher With Standings")
 	if err := ebiten.RunGame(NewGame()); err != nil {
 		panic(err)
