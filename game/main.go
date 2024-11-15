@@ -61,6 +61,15 @@ const (
 	pipeStartOffsetX = 8
 	pipeIntervalX    = 8
 	pipeGapY         = 5
+	initialX16       = 0
+	initialY16       = 100 * 16
+	initialCameraX   = -240
+	initialCameraY   = 0
+	unit             = 16
+	vyLimit          = 96
+	deltaX16         = 32
+	deltaVY16        = 4
+	deltaCameraX     = 2
 )
 
 var (
@@ -133,10 +142,10 @@ func NewGame() ebiten.Game {
 }
 
 func (g *Game) init() {
-	g.x16 = 0
-	g.y16 = 100 * 16
-	g.cameraX = -240
-	g.cameraY = 0
+	g.x16 = initialX16
+	g.y16 = initialY16
+	g.cameraX = initialCameraX
+	g.cameraY = initialCameraY
 	g.pipeTileYs = make([]int, 256)
 	randomKey := "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456"
 	seed := [32]byte([]byte(randomKey))
@@ -213,11 +222,11 @@ func (g *Game) Update() error {
 			g.mode = ModeGame
 		}
 	case ModeGame:
-		g.x16 += 32
-		g.cameraX += 2
+		g.x16 += deltaX16
+		g.cameraX += deltaCameraX
 		if g.isKeyJustPressed() {
 			g.jumpHistory = append(g.jumpHistory, g.x16)
-			g.vy16 = -96
+			g.vy16 = -vyLimit
 			if err := g.jumpPlayer.Rewind(); err != nil {
 				return err
 			}
@@ -226,9 +235,9 @@ func (g *Game) Update() error {
 		g.y16 += g.vy16
 
 		// Gravity
-		g.vy16 += 4
-		if g.vy16 > 96 {
-			g.vy16 = 96
+		g.vy16 += deltaVY16
+		if g.vy16 > vyLimit {
+			g.vy16 = vyLimit
 		}
 
 		if g.hit() {
@@ -329,7 +338,7 @@ func (g *Game) pipeAt(tileX int) (tileY int, ok bool) {
 }
 
 func (g *Game) score() int {
-	x := floorDiv(g.x16, 16) / tileSize
+	x := floorDiv(g.x16, unit) / tileSize
 	if (x - pipeStartOffsetX) <= 0 {
 		return 0
 	}
@@ -345,8 +354,8 @@ func (g *Game) hit() bool {
 		gopherHeight = 60
 	)
 	w, h := gopherImage.Bounds().Dx(), gopherImage.Bounds().Dy()
-	x0 := floorDiv(g.x16, 16) + (w-gopherWidth)/2
-	y0 := floorDiv(g.y16, 16) + (h-gopherHeight)/2
+	x0 := floorDiv(g.x16, unit) + (w-gopherWidth)/2
+	y0 := floorDiv(g.y16, unit) + (h-gopherHeight)/2
 	x1 := x0 + gopherWidth
 	y1 := y0 + gopherHeight
 	if y0 < -tileSize*4 {
