@@ -51,28 +51,6 @@ func floorMod(x, y int) int {
 	return x - floorDiv(x, y)*y
 }
 
-// const (
-// 	screenWidth      = 640
-// 	screenHeight     = 480
-// 	tileSize         = 32
-// 	titleFontSize    = fontSize * 1.5
-// 	fontSize         = 24
-// 	smallFontSize    = fontSize / 2
-// 	pipeWidth        = tileSize * 2
-// 	pipeStartOffsetX = 8
-// 	pipeIntervalX    = 8
-// 	pipeGapY         = 5
-// 	initialX16       = 0
-// 	initialY16       = 100 * 16
-// 	initialCameraX   = -240
-// 	initialCameraY   = 0
-// 	unit             = 16
-// 	vyLimit          = 96
-// 	deltaX16         = 32
-// 	deltaVY16        = 4
-// 	deltaCameraX     = 2
-// )
-
 var (
 	gopherImage      *ebiten.Image
 	tilesImage       *ebiten.Image
