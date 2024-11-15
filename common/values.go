@@ -1,4 +1,4 @@
-package config
+package common
 
 const (
 	ScreenWidth      = 640
