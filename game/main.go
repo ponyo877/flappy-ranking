@@ -122,6 +122,8 @@ type Game struct {
 	audioContext *audio.Context
 	jumpPlayer   *audio.Player
 	hitPlayer    *audio.Player
+
+	jumpHistory []int
 }
 
 func NewGame() ebiten.Game {
@@ -136,8 +138,11 @@ func (g *Game) init() {
 	g.cameraX = -240
 	g.cameraY = 0
 	g.pipeTileYs = make([]int, 256)
+	randomKey := "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456"
+	seed := [32]byte([]byte(randomKey))
+	r := rand.New(rand.NewChaCha8(seed))
 	for i := range g.pipeTileYs {
-		g.pipeTileYs[i] = rand.IntN(6) + 2
+		g.pipeTileYs[i] = r.IntN(6) + 2
 	}
 
 	if g.audioContext == nil {
@@ -161,6 +166,7 @@ func (g *Game) init() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	g.jumpHistory = []int{}
 }
 
 func (g *Game) isKeyJustPressed() bool {
@@ -210,6 +216,7 @@ func (g *Game) Update() error {
 		g.x16 += 32
 		g.cameraX += 2
 		if g.isKeyJustPressed() {
+			g.jumpHistory = append(g.jumpHistory, g.x16)
 			g.vy16 = -96
 			if err := g.jumpPlayer.Rewind(); err != nil {
 				return err
@@ -225,6 +232,7 @@ func (g *Game) Update() error {
 		}
 
 		if g.hit() {
+			g.jumpHistory = []int{}
 			if err := g.hitPlayer.Rewind(); err != nil {
 				return err
 			}
