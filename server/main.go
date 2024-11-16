@@ -93,8 +93,8 @@ func (s *Server) scoreHandler(w http.ResponseWriter, r *http.Request) {
 	default:
 		startDate = time.Time{}
 	}
-
-	scores, err := s.usecase.listScore(startDate)
+	limit := 20
+	scores, err := s.usecase.listScore(startDate, limit)
 	if err != nil {
 		http.Error(w, "Failed to get score", http.StatusInternalServerError)
 		return
@@ -144,7 +144,7 @@ func (s *Server) scoreRegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 type Usecase interface {
 	registerSession(token, pipeKey string) error
-	listScore(startDate time.Time) ([]*common.Score, error)
+	listScore(startDate time.Time, limit int) ([]*common.Score, error)
 	getSession(token string) (string, time.Time, error)
 	getObject(jumpHistory []int, pipeKey string) (*common.Object, error)
 }
@@ -184,8 +184,8 @@ func (u *ScoreUsecase) registerSession(token, pipeKey string) error {
 	return u.repository.CreateSession(token, pipeKey)
 }
 
-func (u *ScoreUsecase) listScore(startDate time.Time) ([]*common.Score, error) {
-	return u.repository.ListScore(startDate)
+func (u *ScoreUsecase) listScore(startDate time.Time, limit int) ([]*common.Score, error) {
+	return u.repository.ListScore(startDate, limit)
 }
 
 func (u *ScoreUsecase) getSession(token string) (string, time.Time, error) {
@@ -194,7 +194,7 @@ func (u *ScoreUsecase) getSession(token string) (string, time.Time, error) {
 
 type Repository interface {
 	CreateSession(token, pipeKey string) error
-	ListScore(startDate time.Time) ([]*common.Score, error)
+	ListScore(startDate time.Time, limit int) ([]*common.Score, error)
 	GetSession(token string) (string, time.Time, error)
 }
 
@@ -221,10 +221,10 @@ func (r *ScoreRepository) CreateSession(token, pipeKey string) error {
 	return nil
 }
 
-func (r *ScoreRepository) ListScore(startDate time.Time) ([]*common.Score, error) {
+func (r *ScoreRepository) ListScore(startDate time.Time, limit int) ([]*common.Score, error) {
 	var scoresDB []*Score
-	query := "SELECT * FROM scores WHERE created_at >= ? ORDER BY score DESC"
-	if err := r.db.QueryRow(query, startDate).Scan(&scoresDB); err != nil {
+	query := "SELECT * FROM scores WHERE created_at >= ? ORDER BY score DESC LIMIT ?"
+	if err := r.db.QueryRow(query, startDate, limit).Scan(&scoresDB); err != nil {
 		return nil, err
 	}
 	var scores []*common.Score

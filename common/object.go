@@ -91,6 +91,7 @@ func (o *Object) Hit() bool {
 }
 
 func (o *Object) IsValidTimeDiff(startTime, endTime time.Time) bool {
-	// TODO not implemented
-	return true
+	diffSecond := int(endTime.Sub(startTime).Seconds())
+	game60FPSsecond := o.X16 / DeltaX16 / 60
+	return game60FPSsecond/2 <= diffSecond && diffSecond <= game60FPSsecond+PipeIntervalX
 }
