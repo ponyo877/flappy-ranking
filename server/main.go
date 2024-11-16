@@ -15,7 +15,7 @@ func main() {
 	usecase := NewScoreUsecase(repository)
 	server := NewServer(usecase)
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /token", server.tokenHandler)
+	mux.HandleFunc("POST /token", server.tokenHandler)
 	mux.HandleFunc("GET /score", server.scoreHandler)
 	mux.HandleFunc("POST /score", server.scoreRegisterHandler)
 	http.ListenAndServe(":8080", mux)
@@ -30,12 +30,18 @@ func NewServer(usecase Usecase) *Server {
 }
 
 func (s *Server) tokenHandler(w http.ResponseWriter, r *http.Request) {
+	token := common.NewUlID()
+	pipeKey := common.NewUlID()
+	if err := s.usecase.registerSession(token, pipeKey); err != nil {
+		http.Error(w, "Failed to register session", http.StatusInternalServerError)
+		return
+	}
 	responseBody := struct {
 		Token   string `json:"token"`
 		PipeKey string `json:"pipeKey"`
 	}{
-		Token:   common.NewUlID(),
-		PipeKey: common.NewUlID(),
+		Token:   token,
+		PipeKey: pipeKey,
 	}
 	if err := json.NewEncoder(w).Encode(responseBody); err != nil {
 		http.Error(w, "Failed to encode response body", http.StatusInternalServerError)
@@ -137,6 +143,7 @@ func (s *Server) scoreRegisterHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type Usecase interface {
+	registerSession(token, pipeKey string) error
 	listScore(startDate time.Time) ([]*common.Score, error)
 	getSession(token string) (string, time.Time, error)
 	getObject(jumpHistory []int, pipeKey string) (*common.Object, error)
@@ -173,6 +180,10 @@ func (u *ScoreUsecase) getObject(jumpHistory []int, pipeKey string) (*common.Obj
 	return obj, nil
 }
 
+func (u *ScoreUsecase) registerSession(token, pipeKey string) error {
+	return u.repository.CreateSession(token, pipeKey)
+}
+
 func (u *ScoreUsecase) listScore(startDate time.Time) ([]*common.Score, error) {
 	return u.repository.ListScore(startDate)
 }
@@ -182,6 +193,7 @@ func (u *ScoreUsecase) getSession(token string) (string, time.Time, error) {
 }
 
 type Repository interface {
+	CreateSession(token, pipeKey string) error
 	ListScore(startDate time.Time) ([]*common.Score, error)
 	GetSession(token string) (string, time.Time, error)
 }
@@ -199,6 +211,14 @@ type Score struct {
 	Name      string    `db:"name"`
 	Score     int       `db:"score"`
 	CreatedAt time.Time `db:"created_at"`
+}
+
+func (r *ScoreRepository) CreateSession(token, pipeKey string) error {
+	query := "INSERT INTO users (token, pipe_key) VALUES (?, ?)"
+	if _, err := r.db.Exec(query, token, pipeKey); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *ScoreRepository) ListScore(startDate time.Time) ([]*common.Score, error) {
