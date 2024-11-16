@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestScoreUsecase_calcScore(t *testing.T) {
+func TestScoreUsecase_getObject(t *testing.T) {
 	u := &ScoreUsecase{}
 
 	type args struct {
@@ -33,8 +33,8 @@ func TestScoreUsecase_calcScore(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := u.calcScore(tt.args.jumpHistory, tt.args.pipeKey)
-			assert.Equal(t, tt.want, got)
+			got, err := u.getObject(tt.args.jumpHistory, tt.args.pipeKey)
+			assert.Equal(t, tt.want, got.Score())
 			tt.errFunc(t, err)
 		})
 	}

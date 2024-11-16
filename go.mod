@@ -4,6 +4,7 @@ go 1.23.1
 
 require (
 	github.com/hajimehoshi/ebiten/v2 v2.8.4
+	github.com/oklog/ulid/v2 v2.1.0
 	github.com/stretchr/testify v1.9.0
 )
 

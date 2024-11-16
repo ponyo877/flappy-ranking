@@ -1,6 +1,9 @@
 package common
 
-import "math/rand/v2"
+import (
+	"math/rand/v2"
+	"time"
+)
 
 type Object struct {
 	// The gopher's position
@@ -85,4 +88,9 @@ func (o *Object) Hit() bool {
 		}
 	}
 	return false
+}
+
+func (o *Object) IsValidTimeDiff(startTime, endTime time.Time) bool {
+	// TODO not implemented
+	return true
 }
