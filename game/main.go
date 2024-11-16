@@ -24,7 +24,6 @@ import (
 	_ "image/png"
 	"log"
 	"math"
-	"math/rand/v2"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"
@@ -77,7 +76,7 @@ const (
 
 type Game struct {
 	mode Mode
-	obj  common.Object
+	obj  *common.Object
 
 	// Camera
 	cameraX int
@@ -102,17 +101,15 @@ func NewGame() ebiten.Game {
 }
 
 func (g *Game) init() {
-	g.obj.X16 = common.InitialX16
-	g.obj.Y16 = common.InitialY16
 	g.cameraX = common.InitialCameraX
 	g.cameraY = common.InitialCameraY
-	g.obj.PipeTileYs = make([]int, 256)
 	randomKey := "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456"
-	seed := [32]byte([]byte(randomKey))
-	r := rand.New(rand.NewChaCha8(seed))
-	for i := range g.obj.PipeTileYs {
-		g.obj.PipeTileYs[i] = r.IntN(6) + 2
-	}
+	g.obj = common.NewObject(
+		common.InitialX16,
+		common.InitialY16,
+		0,
+		randomKey,
+	)
 
 	if g.audioContext == nil {
 		g.audioContext = audio.NewContext(48000)
@@ -348,6 +345,7 @@ func (g *Game) drawGopher(screen *ebiten.Image) {
 
 func main() {
 	flag.Parse()
+	ebiten.SetTPS(60)
 	ebiten.SetWindowSize(common.ScreenWidth, common.ScreenHeight)
 	ebiten.SetWindowTitle("Flappy Gopher With Standings")
 	if err := ebiten.RunGame(NewGame()); err != nil {
