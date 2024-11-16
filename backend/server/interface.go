@@ -8,13 +8,12 @@ import (
 
 type Usecase interface {
 	RegisterSession(token, pipeKey string) error
-	ListScore(startDate time.Time, limit int) ([]*common.Score, error)
-	GetSession(token string) (string, time.Time, error)
-	GetObject(jumpHistory []int, pipeKey string) (*common.Object, error)
+	ListScore(period string) ([]*common.Score, error)
+	CalcScore(jumpHistory []int, token string) (int, error)
 }
 
 type Repository interface {
 	CreateSession(token, pipeKey string) error
-	ListScore(startDate time.Time, limit int) ([]*common.Score, error)
+	ListScore(startTime time.Time, limit int) ([]*common.Score, error)
 	GetSession(token string) (string, time.Time, error)
 }

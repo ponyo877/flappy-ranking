@@ -2,11 +2,12 @@ package usecase
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestScoreUsecase_GetObject(t *testing.T) {
+func TestScoreUsecase_simulateObject(t *testing.T) {
 	u := &ScoreUsecase{}
 
 	type args struct {
@@ -14,10 +15,9 @@ func TestScoreUsecase_GetObject(t *testing.T) {
 		pipeKey     string
 	}
 	tests := []struct {
-		name    string
-		args    args
-		want    int
-		errFunc func(t assert.TestingT, err error)
+		name string
+		args args
+		want int
 	}{
 		{
 			name: "success",
@@ -26,16 +26,66 @@ func TestScoreUsecase_GetObject(t *testing.T) {
 				pipeKey:     "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456",
 			},
 			want: 9,
-			errFunc: func(t assert.TestingT, err error) {
-				assert.NoError(t, err)
-			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := u.GetObject(tt.args.jumpHistory, tt.args.pipeKey)
+			got := u.simulateObject(tt.args.jumpHistory, tt.args.pipeKey)
 			assert.Equal(t, tt.want, got.Score())
-			tt.errFunc(t, err)
+		})
+	}
+}
+
+func TestScoreUsecase_calcStarTime(t *testing.T) {
+	jst, _ := time.LoadLocation("Asia/Tokyo")
+	now := time.Date(2024, 11, 16, 1, 2, 3, 4, jst)
+	u := &ScoreUsecase{}
+	type args struct {
+		now    time.Time
+		period string
+	}
+	tests := []struct {
+		name string
+		args args
+		want time.Time
+	}{
+		{
+			name: "DAILY",
+			args: args{
+				now:    now,
+				period: "DAILY",
+			},
+			want: time.Date(2024, 11, 16, 0, 0, 0, 0, jst),
+		},
+		{
+			name: "WEEKLY",
+			args: args{
+				now:    now,
+				period: "WEEKLY",
+			},
+			want: time.Date(2024, 11, 10, 0, 0, 0, 0, jst),
+		},
+		{
+			name: "MONTHLY",
+			args: args{
+				now:    now,
+				period: "MONTHLY",
+			},
+			want: time.Date(2024, 11, 1, 0, 0, 0, 0, jst),
+		},
+		{
+			name: "default",
+			args: args{
+				now:    now,
+				period: "ALL",
+			},
+			want: time.Time{},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := u.calcStarTime(tt.args.now, tt.args.period)
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }

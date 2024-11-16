@@ -38,27 +38,8 @@ func (s *Server) TokenHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) ScoreHandler(w http.ResponseWriter, r *http.Request) {
-	period := "DAILY"
-	var startDate time.Time
-	jst, err := time.LoadLocation("Asia/Tokyo")
-	if err != nil {
-		http.Error(w, "Failed to load location", http.StatusInternalServerError)
-		return
-	}
-	todayHead := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 0, 0, 0, 0, jst)
-	switch period {
-	case "DAILY":
-		startDate = todayHead
-	case "WEEKLY":
-		offset := int(time.Now().Weekday()) - int(time.Sunday)
-		startDate = todayHead.AddDate(0, 0, -offset).In(jst)
-	case "MONTHLY":
-		startDate = time.Date(time.Now().Year(), time.Now().Month(), 1, 0, 0, 0, 0, jst)
-	default:
-		startDate = time.Time{}
-	}
-	limit := 20
-	scores, err := s.usecase.ListScore(startDate, limit)
+	period := r.URL.Query().Get("period")
+	scores, err := s.usecase.ListScore(period)
 	if err != nil {
 		http.Error(w, "Failed to get score", http.StatusInternalServerError)
 		return
@@ -83,23 +64,14 @@ func (s *Server) ScoreRegisterHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
-	pipeKey, startTime, err := s.usecase.GetSession(req.Token)
-	if err != nil {
-		http.Error(w, "Failed to get pipe key", http.StatusInternalServerError)
-		return
-	}
-	obj, err := s.usecase.GetObject(req.JumpHistory, pipeKey)
+	score, err := s.usecase.CalcScore(req.JumpHistory, req.Token)
 	if err != nil {
 		http.Error(w, "Failed to calculate score", http.StatusInternalServerError)
 		return
 	}
-	if !obj.IsValidTimeDiff(startTime, time.Now()) {
-		http.Error(w, "Invalid game end time", http.StatusBadRequest)
-		return
-	}
 	responseBody := struct {
 		Score int `json:"score"`
-	}{obj.Score()}
+	}{score}
 	if err := json.NewEncoder(w).Encode(responseBody); err != nil {
 		http.Error(w, "Failed to encode response body", http.StatusInternalServerError)
 		return
