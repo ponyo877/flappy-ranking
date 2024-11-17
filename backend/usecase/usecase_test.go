@@ -38,7 +38,7 @@ func TestScoreUsecase_simulateObject(t *testing.T) {
 
 func TestScoreUsecase_calcStarTime(t *testing.T) {
 	jst, _ := time.LoadLocation("Asia/Tokyo")
-	now := time.Date(2024, 11, 16, 1, 2, 3, 4, jst)
+	now := time.Date(2024, 11, 16, 1, 2, 3, 4, jst) // Saturday
 	u := &ScoreUsecase{}
 	type args struct {
 		now    time.Time
@@ -50,7 +50,7 @@ func TestScoreUsecase_calcStarTime(t *testing.T) {
 		want time.Time
 	}{
 		{
-			name: "DAILY",
+			name: "daily",
 			args: args{
 				now:    now,
 				period: "DAILY",
@@ -58,7 +58,7 @@ func TestScoreUsecase_calcStarTime(t *testing.T) {
 			want: time.Date(2024, 11, 16, 0, 0, 0, 0, jst),
 		},
 		{
-			name: "WEEKLY",
+			name: "weekly",
 			args: args{
 				now:    now,
 				period: "WEEKLY",
@@ -66,7 +66,7 @@ func TestScoreUsecase_calcStarTime(t *testing.T) {
 			want: time.Date(2024, 11, 10, 0, 0, 0, 0, jst),
 		},
 		{
-			name: "MONTHLY",
+			name: "monthly",
 			args: args{
 				now:    now,
 				period: "MONTHLY",

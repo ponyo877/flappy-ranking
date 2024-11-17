@@ -2,7 +2,6 @@ package server
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"time"
 
@@ -56,17 +55,21 @@ func (s *Server) ScoreHandler(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) ScoreRegisterHandler(w http.ResponseWriter, r *http.Request) {
 	var req struct {
-		JumpHistory []int  `json:"jumpHistory"`
+		Name        string `json:"name"`
 		Token       string `json:"token"`
+		JumpHistory []int  `json:"jumpHistory"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		log.Printf("Failed to decode request body: %v", err)
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 	score, err := s.usecase.CalcScore(req.JumpHistory, req.Token)
 	if err != nil {
 		http.Error(w, "Failed to calculate score", http.StatusInternalServerError)
+		return
+	}
+	if err := s.usecase.RegisterScore(req.Name, score); err != nil {
+		http.Error(w, "Failed to register score", http.StatusInternalServerError)
 		return
 	}
 	responseBody := struct {

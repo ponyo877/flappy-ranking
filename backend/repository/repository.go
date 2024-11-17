@@ -30,6 +30,14 @@ type Session struct {
 	CreatedAt time.Time `db:"created_at"`
 }
 
+func (r *ScoreRepository) CreateScore(name string, score int) error {
+	query := "INSERT INTO scores (name, score) VALUES (?, ?)"
+	if _, err := r.db.Exec(query, name, score); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (r *ScoreRepository) CreateSession(token, pipeKey string) error {
 	query := "INSERT INTO users (token, pipe_key) VALUES (?, ?)"
 	if _, err := r.db.Exec(query, token, pipeKey); err != nil {

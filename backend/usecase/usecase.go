@@ -16,6 +16,10 @@ func NewScoreUsecase(repository server.Repository) server.Usecase {
 	return &ScoreUsecase{repository}
 }
 
+func (u *ScoreUsecase) RegisterScore(name string, score int) error {
+	return u.repository.CreateScore(name, score)
+}
+
 func (u *ScoreUsecase) RegisterSession(token, pipeKey string) error {
 	return u.repository.CreateSession(token, pipeKey)
 }
