@@ -16,7 +16,7 @@ func NewServer(usecase Usecase) *Server {
 	return &Server{usecase: usecase}
 }
 
-func (s *Server) TokenHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) GenerateTokenHandler(w http.ResponseWriter, r *http.Request) {
 	token := common.NewUlID()
 	pipeKey := common.NewUlID()
 	if err := s.usecase.RegisterSession(token, pipeKey); err != nil {
@@ -36,7 +36,7 @@ func (s *Server) TokenHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *Server) ScoreHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) ListScoreHandler(w http.ResponseWriter, r *http.Request) {
 	period := r.URL.Query().Get("period")
 	scores, err := s.usecase.ListScore(period)
 	if err != nil {
@@ -53,7 +53,7 @@ func (s *Server) ScoreHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *Server) ScoreRegisterHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) RegisterScoreHandler(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Name        string `json:"name"`
 		Token       string `json:"token"`

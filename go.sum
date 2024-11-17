@@ -1,3 +1,5 @@
+filippo.io/edwards25519 v1.1.0 h1:FNf4tywRC1HmFuKW5xopWpigGjJKiJSV0Cqo0cJWDaA=
+filippo.io/edwards25519 v1.1.0/go.mod h1:BxyFTGdWcka3PhytdK4V28tE5sGfRvvvRV7EaN4VDT4=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/ebitengine/gomobile v0.0.0-20240911145611-4856209ac325 h1:Gk1XUEttOk0/hb6Tq3WkmutWa0ZLhNn/6fc6XZpM7tM=
@@ -8,6 +10,8 @@ github.com/ebitengine/oto/v3 v3.3.1 h1:d4McwGQuXOT0GL7bA5g9ZnaUEIEjQvG3hafzMy+T3
 github.com/ebitengine/oto/v3 v3.3.1/go.mod h1:MZeb/lwoC4DCOdiTIxYezrURTw7EvK/yF863+tmBI+U=
 github.com/ebitengine/purego v0.8.0 h1:JbqvnEzRvPpxhCJzJJ2y0RbiZ8nyjccVUrSM3q+GvvE=
 github.com/ebitengine/purego v0.8.0/go.mod h1:iIjxzd6CiRiOG0UyXP+V1+jWqUXVjPKLAI0mRfJZTmQ=
+github.com/go-sql-driver/mysql v1.8.1 h1:LedoTUt/eveggdHS9qUFC1EFSa8bU2+1pZjSRpvNJ1Y=
+github.com/go-sql-driver/mysql v1.8.1/go.mod h1:wEBSXgmK//2ZFJyE+qWnIsVGmvmEKlqwuVSjsCm7DZg=
 github.com/go-text/typesetting v0.2.0 h1:fbzsgbmk04KiWtE+c3ZD4W2nmCRzBqrqQOvYlwAOdho=
 github.com/go-text/typesetting v0.2.0/go.mod h1:2+owI/sxa73XA581LAzVuEBZ3WEEV2pXeDswCH/3i1I=
 github.com/go-text/typesetting-utils v0.0.0-20240317173224-1986cbe96c66 h1:GUrm65PQPlhFSKjLPGOZNPNxLCybjzjYBzjfoBGaDUY=
