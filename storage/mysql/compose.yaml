@@ -1,0 +1,15 @@
+services:
+  # mysql -h127.0.0.1 -uroot -ppassword 
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: flappy
+      MYSQL_USER: flappy
+      MYSQL_ROOT_PASSWORD: password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  mysql_data:

@@ -4,15 +4,15 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/ponyo877/flappy-standings/backend/server"
 	"github.com/ponyo877/flappy-standings/common"
+	"github.com/ponyo877/flappy-standings/server/adapter"
 )
 
 type ScoreRepository struct {
 	db *sql.DB
 }
 
-func NewScoreRepository(db *sql.DB) server.Repository {
+func NewScoreRepository(db *sql.DB) adapter.Repository {
 	return &ScoreRepository{db: db}
 }
 

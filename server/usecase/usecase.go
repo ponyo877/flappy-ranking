@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ponyo877/flappy-standings/backend/server"
 	"github.com/ponyo877/flappy-standings/common"
+	"github.com/ponyo877/flappy-standings/server/adapter"
 )
 
 type ScoreUsecase struct {
-	repository server.Repository
+	repository adapter.Repository
 }
 
-func NewScoreUsecase(repository server.Repository) server.Usecase {
+func NewScoreUsecase(repository adapter.Repository) adapter.Usecase {
 	return &ScoreUsecase{repository}
 }
 
