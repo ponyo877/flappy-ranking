@@ -55,7 +55,7 @@ func (s *Adapter) ListScoreHandler(w http.ResponseWriter, r *http.Request) {
 
 func (s *Adapter) RegisterScoreHandler(w http.ResponseWriter, r *http.Request) {
 	var req struct {
-		Name        string `json:"name"`
+		DisplayName string `json:"displayName"`
 		Token       string `json:"token"`
 		JumpHistory []int  `json:"jumpHistory"`
 	}
@@ -68,7 +68,7 @@ func (s *Adapter) RegisterScoreHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to calculate score", http.StatusInternalServerError)
 		return
 	}
-	if err := s.usecase.RegisterScore(req.Name, score); err != nil {
+	if err := s.usecase.RegisterScore(req.DisplayName, score); err != nil {
 		http.Error(w, "Failed to register score", http.StatusInternalServerError)
 		return
 	}
@@ -82,18 +82,18 @@ func (s *Adapter) RegisterScoreHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type ScoreJSON struct {
-	Rank      int       `json:"rank"`
-	Name      string    `json:"name"`
-	Score     int       `json:"score"`
-	CreatedAt time.Time `json:"created_at"`
+	Rank        int       `json:"rank"`
+	DisplayName string    `json:"display_name"`
+	Score       int       `json:"score"`
+	CreatedAt   time.Time `json:"created_at"`
 }
 
 func NewScoreJSON(score *common.Score) ScoreJSON {
 	return ScoreJSON{
-		Rank:      score.Rank,
-		Name:      score.Name,
-		Score:     score.Score,
-		CreatedAt: score.CreatedAt,
+		Rank:        score.Rank,
+		DisplayName: score.DisplayName,
+		Score:       score.Score,
+		CreatedAt:   score.CreatedAt,
 	}
 }
 
