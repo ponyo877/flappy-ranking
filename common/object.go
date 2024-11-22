@@ -92,6 +92,8 @@ func (o *Object) Hit() bool {
 
 func (o *Object) IsValidTimeDiff(startTime, endTime time.Time) bool {
 	diffSecond := int(endTime.Sub(startTime).Seconds())
-	game60FPSsecond := o.X16 / DeltaX16 / 60
-	return game60FPSsecond/2 <= diffSecond && diffSecond <= game60FPSsecond+PipeIntervalX
+	gameSec60FPS := o.X16 / DeltaX16 / 60
+	intervalSec60FPS := PipeIntervalX / DeltaX16 / 60
+	// Between 30FPS and 60FPS is valid
+	return gameSec60FPS <= diffSecond && diffSecond <= (gameSec60FPS+intervalSec60FPS)*2
 }

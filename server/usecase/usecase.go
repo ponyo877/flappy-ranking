@@ -25,8 +25,8 @@ func (u *ScoreUsecase) RegisterSession(token, pipeKey string) error {
 }
 
 func (u *ScoreUsecase) ListScore(period string) ([]*common.Score, error) {
-	startTime := u.calcStarTime(time.Now(), period)
 	limit := 20
+	startTime := u.calcStarTime(time.Now(), period)
 	return u.repository.ListScore(startTime, limit)
 }
 

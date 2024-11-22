@@ -2,6 +2,7 @@ package adapter
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"time"
 
@@ -20,6 +21,7 @@ func (s *Adapter) GenerateTokenHandler(w http.ResponseWriter, r *http.Request) {
 	token := common.NewUlID()
 	pipeKey := common.NewUlID()
 	if err := s.usecase.RegisterSession(token, pipeKey); err != nil {
+		log.Printf("Failed to register session: %v", err)
 		http.Error(w, "Failed to register session", http.StatusInternalServerError)
 		return
 	}
@@ -31,6 +33,7 @@ func (s *Adapter) GenerateTokenHandler(w http.ResponseWriter, r *http.Request) {
 		PipeKey: pipeKey,
 	}
 	if err := json.NewEncoder(w).Encode(responseBody); err != nil {
+		log.Printf("Failed to encode response body: %v", err)
 		http.Error(w, "Failed to encode response body", http.StatusInternalServerError)
 		return
 	}
@@ -40,6 +43,7 @@ func (s *Adapter) ListScoreHandler(w http.ResponseWriter, r *http.Request) {
 	period := r.URL.Query().Get("period")
 	scores, err := s.usecase.ListScore(period)
 	if err != nil {
+		log.Printf("Failed to get score: %v", err)
 		http.Error(w, "Failed to get score", http.StatusInternalServerError)
 		return
 	}
@@ -48,6 +52,7 @@ func (s *Adapter) ListScoreHandler(w http.ResponseWriter, r *http.Request) {
 		Scores []ScoreJSON `json:"scores"`
 	}{NewScoreJSONList(scores)}
 	if err := json.NewEncoder(w).Encode(responseBody); err != nil {
+		log.Printf("Failed to encode response body: %v", err)
 		http.Error(w, "Failed to encode response body", http.StatusInternalServerError)
 		return
 	}
@@ -60,15 +65,18 @@ func (s *Adapter) RegisterScoreHandler(w http.ResponseWriter, r *http.Request) {
 		JumpHistory []int  `json:"jumpHistory"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Printf("Failed to decode request body: %v", err)
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 	score, err := s.usecase.CalcScore(req.JumpHistory, req.Token)
 	if err != nil {
-		http.Error(w, "Failed to calculate score", http.StatusInternalServerError)
+		log.Printf("Failed to calculate score: %v", err)
+		http.Error(w, "Failed to calculate score", http.StatusBadRequest)
 		return
 	}
 	if err := s.usecase.RegisterScore(req.DisplayName, score); err != nil {
+		log.Printf("Failed to register score: %v", err)
 		http.Error(w, "Failed to register score", http.StatusInternalServerError)
 		return
 	}
@@ -76,6 +84,7 @@ func (s *Adapter) RegisterScoreHandler(w http.ResponseWriter, r *http.Request) {
 		Score int `json:"score"`
 	}{score}
 	if err := json.NewEncoder(w).Encode(responseBody); err != nil {
+		log.Printf("Failed to encode response body: %v", err)
 		http.Error(w, "Failed to encode response body", http.StatusInternalServerError)
 		return
 	}
