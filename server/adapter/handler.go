@@ -59,9 +59,14 @@ func (s *Adapter) ListScoreHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Adapter) RegisterScoreHandler(w http.ResponseWriter, r *http.Request) {
+	token := r.PathValue("token")
+	if token == "" {
+		log.Printf("Token not provided in path")
+		http.Error(w, "Token not provided", http.StatusBadRequest)
+		return
+	}
 	var req struct {
 		DisplayName string `json:"displayName"`
-		Token       string `json:"token"`
 		JumpHistory []int  `json:"jumpHistory"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -69,7 +74,7 @@ func (s *Adapter) RegisterScoreHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
-	score, err := s.usecase.CalcScore(req.JumpHistory, req.Token)
+	score, err := s.usecase.CalcScore(req.JumpHistory, token)
 	if err != nil {
 		log.Printf("Failed to calculate score: %v", err)
 		http.Error(w, "Failed to calculate score", http.StatusBadRequest)

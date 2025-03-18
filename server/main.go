@@ -21,7 +21,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /tokens", adapter.GenerateTokenHandler)
 	mux.HandleFunc("GET /scores", adapter.ListScoreHandler)
-	mux.HandleFunc("POST /scores", adapter.RegisterScoreHandler)
+	mux.HandleFunc("POST /scores/{token}", adapter.RegisterScoreHandler)
 	if err := http.ListenAndServe(":8080", mux); err != nil {
 		log.Fatalf("failed to start server: %v", err)
 	}

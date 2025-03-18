@@ -6,6 +6,7 @@ services:
       MYSQL_DATABASE: flappy
       MYSQL_USER: flappy
       MYSQL_ROOT_PASSWORD: password
+      TZ: Asia/Tokyo
     ports:
       - "3306:3306"
     volumes:

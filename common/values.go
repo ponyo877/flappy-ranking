@@ -6,6 +6,7 @@ const (
 	TileSize         = 32
 	TitleFontSize    = FontSize * 1.5
 	FontSize         = 24
+	MiddleFontSize   = FontSize * 0.75
 	SmallFontSize    = FontSize / 2
 	PipeWidth        = TileSize * 2
 	PipeStartOffsetX = 8

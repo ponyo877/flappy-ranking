@@ -47,23 +47,46 @@ func (r *ScoreRepository) CreateSession(token, pipeKey string) error {
 }
 
 func (r *ScoreRepository) ListScore(startDate time.Time, limit int) ([]*common.Score, error) {
-	var scoresDB []*Score
-	query := "SELECT * FROM scores WHERE created_at >= ? ORDER BY score DESC LIMIT ?"
-	if err := r.db.QueryRow(query, startDate, limit).Scan(&scoresDB); err != nil {
+	query := "SELECT id, display_name, score, created_at FROM scores WHERE created_at >= ? ORDER BY score DESC LIMIT ?"
+	rows, err := r.db.Query(query, startDate, limit)
+	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
+
 	var scores []*common.Score
-	for _, score := range scoresDB {
-		scores = append(scores, common.NewScore(score.ID, score.DisplayName, score.Score, score.CreatedAt))
+	rank := 1
+	previousScore := -1
+	previousRank := 0
+
+	for rows.Next() {
+		var s Score
+		if err := rows.Scan(&s.ID, &s.DisplayName, &s.Score, &s.CreatedAt); err != nil {
+			return nil, err
+		}
+		currentRank := previousRank
+		if s.Score != previousScore {
+			currentRank = rank
+			previousRank = rank
+		}
+		scores = append(scores, common.NewScore(currentRank, s.DisplayName, s.Score, s.CreatedAt))
+		previousScore = s.Score
+		rank++
 	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
 	return scores, nil
 }
 
 func (r *ScoreRepository) GetSession(token string) (string, time.Time, error) {
-	var session Session
-	query := "SELECT * FROM sessions WHERE token = ?"
-	if err := r.db.QueryRow(query, token).Scan(&session); err != nil {
+	query := "SELECT pipe_key, created_at FROM sessions WHERE token = ?"
+	var pipeKey string
+	var createdAt time.Time
+	if err := r.db.QueryRow(query, token).Scan(&pipeKey, &createdAt); err != nil {
 		return "", time.Time{}, err
 	}
-	return session.PipeKey, session.CreatedAt, nil
+	return pipeKey, createdAt, nil
 }

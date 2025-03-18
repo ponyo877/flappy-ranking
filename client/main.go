@@ -24,6 +24,7 @@ import (
 	_ "image/png"
 	"log"
 	"math"
+	"net/url"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"
@@ -42,6 +43,8 @@ var (
 	gopherImage      *ebiten.Image
 	tilesImage       *ebiten.Image
 	arcadeFaceSource *text.GoTextFaceSource
+	host             *url.URL
+	serverEndpoint   = "http://localhost:8080"
 )
 
 func init() {
@@ -56,14 +59,15 @@ func init() {
 		log.Fatal(err)
 	}
 	tilesImage = ebiten.NewImageFromImage(img)
-}
-
-func init() {
 	s, err := text.NewGoTextFaceSource(bytes.NewReader(fonts.PressStart2P_ttf))
 	if err != nil {
 		log.Fatal(err)
 	}
 	arcadeFaceSource = s
+	host, err = url.Parse(serverEndpoint)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 type Mode int
@@ -72,6 +76,7 @@ const (
 	ModeTitle Mode = iota
 	ModeGame
 	ModeGameOver
+	ModeRanking
 )
 
 type Game struct {
@@ -92,6 +97,22 @@ type Game struct {
 	hitPlayer    *audio.Player
 
 	jumpHistory []int
+
+	token        string
+	pipeKey      string
+	playerName   string
+	errorMessage string
+
+	rankings        []*common.Score
+	rankingPeriod   string // "DAILY", "WEEKLY", "MONTHLY"
+	fetchingRanking bool
+
+	rankingButton     Button
+	dailyButton       Button
+	weeklyButton      Button
+	monthlyButton     Button
+	backButton        Button
+	submitScoreButton Button
 }
 
 func NewGame() ebiten.Game {
@@ -103,13 +124,6 @@ func NewGame() ebiten.Game {
 func (g *Game) init() {
 	g.cameraX = common.InitialCameraX
 	g.cameraY = common.InitialCameraY
-	randomKey := "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456"
-	g.obj = common.NewObject(
-		common.InitialX16,
-		common.InitialY16,
-		0,
-		randomKey,
-	)
 
 	if g.audioContext == nil {
 		g.audioContext = audio.NewContext(48000)
@@ -133,6 +147,65 @@ func (g *Game) init() {
 		log.Fatal(err)
 	}
 	g.jumpHistory = []int{}
+
+	g.rankingButton = newButton(
+		common.ScreenWidth/2-80,
+		common.ScreenHeight-100,
+		160,
+		40,
+		"RANKING",
+		common.MiddleFontSize,
+	)
+
+	buttonWidth := 100
+	buttonHeight := 40
+	buttonY := common.ScreenHeight - 80
+	buttonSpacing := 20
+
+	g.dailyButton = newButton(
+		50,
+		buttonY,
+		buttonWidth,
+		buttonHeight,
+		"DAILY",
+		common.SmallFontSize,
+	)
+
+	g.weeklyButton = newButton(
+		50+buttonWidth+buttonSpacing,
+		buttonY,
+		buttonWidth,
+		buttonHeight,
+		"WEEKLY",
+		common.SmallFontSize,
+	)
+
+	g.monthlyButton = newButton(
+		50+2*(buttonWidth+buttonSpacing),
+		buttonY,
+		buttonWidth,
+		buttonHeight,
+		"MONTHLY",
+		common.SmallFontSize,
+	)
+
+	g.backButton = newButton(
+		50+3*(buttonWidth+buttonSpacing),
+		buttonY,
+		buttonWidth,
+		buttonHeight,
+		"BACK",
+		common.SmallFontSize,
+	)
+
+	g.submitScoreButton = newButton(
+		common.ScreenWidth/2-80,
+		common.ScreenHeight-250,
+		160,
+		40,
+		"SUBMIT",
+		common.MiddleFontSize,
+	)
 }
 
 func (g *Game) isKeyJustPressed() bool {
@@ -175,7 +248,21 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 func (g *Game) Update() error {
 	switch g.mode {
 	case ModeTitle:
+		if g.rankingButton.IsClicked() || inpututil.IsKeyJustPressed(ebiten.KeyR) {
+			g.fetchRanking()
+			g.mode = ModeRanking
+			g.rankingPeriod = "DAILY"
+			return nil
+		}
+
 		if g.isKeyJustPressed() {
+			g.fetchToken()
+			g.obj = common.NewObject(
+				common.InitialX16,
+				common.InitialY16,
+				0,
+				g.pipeKey,
+			)
 			g.mode = ModeGame
 		}
 	case ModeGame:
@@ -199,7 +286,6 @@ func (g *Game) Update() error {
 
 		if g.obj.Hit() {
 			log.Printf("debug jumpHistory: %v", g.jumpHistory)
-			g.jumpHistory = []int{}
 			if err := g.hitPlayer.Rewind(); err != nil {
 				return err
 			}
@@ -211,15 +297,119 @@ func (g *Game) Update() error {
 		if g.gameoverCount > 0 {
 			g.gameoverCount--
 		}
+
+		// Input
+		runes := ebiten.AppendInputChars(nil)
+		for _, r := range runes {
+			if r != ' ' && len(g.playerName) < 10 {
+				g.playerName += string(r)
+			}
+		}
+
+		// Delete
+		if inpututil.IsKeyJustPressed(ebiten.KeyBackspace) && len(g.playerName) > 0 {
+			g.playerName = g.playerName[:len(g.playerName)-1]
+		}
+
+		playerName := g.playerName
+		if len(g.playerName) == 0 {
+			playerName = "NO NAME"
+		}
+		if g.submitScoreButton.IsClicked() || inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
+			g.submitScore(playerName)
+		}
 		if g.gameoverCount == 0 && g.isKeyJustPressed() {
 			g.init()
+			g.mode = ModeTitle
+		}
+	case ModeRanking:
+		if g.dailyButton.IsClicked() || inpututil.IsKeyJustPressed(ebiten.KeyD) {
+			g.rankingPeriod = "DAILY"
+			go g.fetchRanking()
+		}
+		if g.weeklyButton.IsClicked() || inpututil.IsKeyJustPressed(ebiten.KeyW) {
+			g.rankingPeriod = "WEEKLY"
+			go g.fetchRanking()
+		}
+		if g.monthlyButton.IsClicked() || inpututil.IsKeyJustPressed(ebiten.KeyM) {
+			g.rankingPeriod = "MONTHLY"
+			go g.fetchRanking()
+		}
+		if g.backButton.IsClicked() || inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
 			g.mode = ModeTitle
 		}
 	}
 	return nil
 }
 
+func (g *Game) drawRanking(screen *ebiten.Image) {
+	screen.Fill(color.RGBA{0x40, 0x40, 0x60, 0xff})
+
+	title := fmt.Sprintf("%s RANKING", g.rankingPeriod)
+	op := &text.DrawOptions{}
+	op.GeoM.Translate(common.ScreenWidth/2, 50)
+	op.ColorScale.ScaleWithColor(color.White)
+	op.PrimaryAlign = text.AlignCenter
+	text.Draw(screen, title, &text.GoTextFace{
+		Source: arcadeFaceSource,
+		Size:   common.TitleFontSize,
+	}, op)
+	// ランキング表示
+	if g.fetchingRanking {
+		op.GeoM.Translate(0, 100)
+		text.Draw(screen, "Loading...", &text.GoTextFace{
+			Source: arcadeFaceSource,
+			Size:   common.FontSize,
+		}, op)
+	} else if len(g.rankings) == 0 {
+		op.GeoM.Translate(0, 100)
+		text.Draw(screen, "No data", &text.GoTextFace{
+			Source: arcadeFaceSource,
+			Size:   common.FontSize,
+		}, op)
+	} else {
+		for i, score := range g.rankings {
+			// Top 10
+			if i > 9 {
+				break
+			}
+
+			y := 100 + i*30
+			rankText := fmt.Sprintf("%2d. %-10s %4d", score.Rank, score.DisplayName, score.Score)
+
+			op := &text.DrawOptions{}
+			op.GeoM.Translate(common.ScreenWidth/2, float64(y))
+			op.ColorScale.ScaleWithColor(color.White)
+			op.PrimaryAlign = text.AlignCenter
+			text.Draw(screen, rankText, &text.GoTextFace{
+				Source: arcadeFaceSource,
+				Size:   common.FontSize,
+			}, op)
+		}
+	}
+
+	g.dailyButton.Draw(screen)
+	g.weeklyButton.Draw(screen)
+	g.monthlyButton.Draw(screen)
+	g.backButton.Draw(screen)
+
+	guide := "D: Daily  W: Weekly  M: Monthly  ESC: Back"
+	op = &text.DrawOptions{}
+	op.GeoM.Translate(common.ScreenWidth/2, common.ScreenHeight-30)
+	op.ColorScale.ScaleWithColor(color.White)
+	op.PrimaryAlign = text.AlignCenter
+	text.Draw(screen, guide, &text.GoTextFace{
+		Source: arcadeFaceSource,
+		Size:   common.SmallFontSize,
+	}, op)
+}
+
 func (g *Game) Draw(screen *ebiten.Image) {
+	if g.mode == ModeRanking {
+		g.drawRanking(screen)
+		return
+	}
+
 	screen.Fill(color.RGBA{0x80, 0xa0, 0xc0, 0xff})
 	g.drawTiles(screen)
 	if g.mode != ModeTitle {
@@ -231,9 +421,11 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	switch g.mode {
 	case ModeTitle:
 		titleTexts = "FLAPPY GOPHER\nWITH STANDIGNS"
-		texts = "\n\n\n\n\n\nPRESS SPACE KEY\n\nOR A/B BUTTON\n\nOR TOUCH SCREEN"
+		texts = "\n\n\n\nPRESS SPACE KEY\n\nOR A/B BUTTON\n\nOR TOUCH SCREEN\n\nPRESS R FOR RANKING"
+		g.rankingButton.Draw(screen)
 	case ModeGameOver:
-		texts = "\nGAME OVER!"
+		texts = "\nENTER OR SUBMIT YOUR NAME:\n\n" + g.playerName + "_\n\n\n\n\n\nPRESS KEY TO CONTINUE"
+		g.submitScoreButton.Draw(screen)
 	}
 
 	op := &text.DrawOptions{}
@@ -276,10 +468,12 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	op.ColorScale.ScaleWithColor(color.White)
 	op.LineSpacing = common.FontSize
 	op.PrimaryAlign = text.AlignEnd
-	text.Draw(screen, fmt.Sprintf("%04d", g.obj.Score()), &text.GoTextFace{
-		Source: arcadeFaceSource,
-		Size:   common.FontSize,
-	}, op)
+	if g.obj != nil {
+		text.Draw(screen, fmt.Sprintf("%04d", g.obj.Score()), &text.GoTextFace{
+			Source: arcadeFaceSource,
+			Size:   common.FontSize,
+		}, op)
+	}
 
 	ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %0.2f", ebiten.ActualTPS()))
 }
@@ -347,7 +541,7 @@ func main() {
 	flag.Parse()
 	ebiten.SetTPS(60)
 	ebiten.SetWindowSize(common.ScreenWidth, common.ScreenHeight)
-	ebiten.SetWindowTitle("Flappy Gopher With Standings")
+	ebiten.SetWindowTitle("Flappy Gopher With Ranking")
 	if err := ebiten.RunGame(NewGame()); err != nil {
 		panic(err)
 	}

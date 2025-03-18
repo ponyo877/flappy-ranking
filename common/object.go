@@ -1,6 +1,7 @@
 package common
 
 import (
+	"log"
 	"math/rand/v2"
 	"time"
 )
@@ -17,7 +18,10 @@ type Object struct {
 
 func NewObject(initX16, initY16, initVy16 int, pipeKey string) *Object {
 	pipeTileYs := make([]int, 256)
-	seed := [32]byte([]byte(pipeKey))
+	var seed [32]byte
+	pipeKeyBytes := []byte(pipeKey)
+	copy(seed[:], pipeKeyBytes)
+
 	r := rand.New(rand.NewChaCha8(seed))
 	for i := range pipeTileYs {
 		pipeTileYs[i] = r.IntN(6) + 2
@@ -92,8 +96,19 @@ func (o *Object) Hit() bool {
 
 func (o *Object) IsValidTimeDiff(startTime, endTime time.Time) bool {
 	diffSecond := int(endTime.Sub(startTime).Seconds())
+	// PipeStartOffsetX * TileSize * Unit は最初のパイプまでのピクセル単位距離（16倍）
+	// firstPipeDistance := PipeStartOffsetX * TileSize * Unit
 	gameSec60FPS := o.X16 / DeltaX16 / 60
-	intervalSec60FPS := PipeIntervalX / DeltaX16 / 60
-	// Between 30FPS and 60FPS is valid
-	return gameSec60FPS <= diffSecond && diffSecond <= (gameSec60FPS+intervalSec60FPS)*2
+
+	// initTime := firstPipeDistance / DeltaX16 / 60
+	initTime := 0
+	intervalSec60FPS := PipeIntervalX * TileSize * Unit / DeltaX16 / 60
+
+	// 60FPS Time
+	minTime := gameSec60FPS + initTime
+	// 30FPS Time
+	maxTime := (gameSec60FPS + intervalSec60FPS + initTime) * 2
+	log.Printf("diffSecond: %d, minTime: %d, maxTime: %d", diffSecond, minTime, maxTime)
+
+	return minTime <= diffSecond && diffSecond <= maxTime
 }
