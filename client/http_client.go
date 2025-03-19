@@ -103,5 +103,6 @@ func (g *Game) submitScore(playerName string) {
 		log.Printf("Failed to submit score: %s", resp.Status)
 		return
 	}
+	g.scoreSubmitted = true
 	log.Printf("Score submitted successfully")
 }

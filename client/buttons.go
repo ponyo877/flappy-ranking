@@ -14,10 +14,11 @@ type Button struct {
 	Width, Height int
 	Text          string
 	FontSize      float64
+	bgColor       color.Color
 	Enabled       bool
 }
 
-func newButton(x, y, width, height int, text string, fontSize float64) Button {
+func newButton(x, y, width, height int, text string, fontSize float64, bgColor color.Color) Button {
 	return Button{
 		X:        x,
 		Y:        y,
@@ -25,6 +26,7 @@ func newButton(x, y, width, height int, text string, fontSize float64) Button {
 		Height:   height,
 		Text:     text,
 		FontSize: fontSize,
+		bgColor:  bgColor,
 		Enabled:  true,
 	}
 }
@@ -64,7 +66,7 @@ func (b *Button) Draw(screen *ebiten.Image) {
 
 	// ボタンの背景
 	bgRect := ebiten.NewImage(b.Width, b.Height)
-	bgRect.Fill(color.RGBA{0x40, 0x40, 0x60, 0xff})
+	bgRect.Fill(b.bgColor)
 
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(float64(b.X), float64(b.Y))

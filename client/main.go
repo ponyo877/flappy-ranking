@@ -45,6 +45,8 @@ var (
 	arcadeFaceSource *text.GoTextFaceSource
 	host             *url.URL
 	serverEndpoint   = "http://localhost:8080"
+	buttonColor1     = color.RGBA{0x60, 0x80, 0xa0, 0xff}
+	buttonColor2     = color.RGBA{0x60, 0x60, 0x80, 0xff}
 )
 
 func init() {
@@ -103,6 +105,9 @@ type Game struct {
 	playerName   string
 	errorMessage string
 
+	// スコア送信成功フラグ
+	scoreSubmitted bool
+
 	rankings        []*common.Score
 	rankingPeriod   string // "DAILY", "WEEKLY", "MONTHLY"
 	fetchingRanking bool
@@ -147,6 +152,7 @@ func (g *Game) init() {
 		log.Fatal(err)
 	}
 	g.jumpHistory = []int{}
+	g.scoreSubmitted = false
 
 	g.rankingButton = newButton(
 		common.ScreenWidth/2-80,
@@ -155,6 +161,7 @@ func (g *Game) init() {
 		40,
 		"RANKING",
 		common.MiddleFontSize,
+		buttonColor1,
 	)
 
 	buttonWidth := 100
@@ -169,6 +176,7 @@ func (g *Game) init() {
 		buttonHeight,
 		"DAILY",
 		common.SmallFontSize,
+		buttonColor2,
 	)
 
 	g.weeklyButton = newButton(
@@ -178,6 +186,7 @@ func (g *Game) init() {
 		buttonHeight,
 		"WEEKLY",
 		common.SmallFontSize,
+		buttonColor2,
 	)
 
 	g.monthlyButton = newButton(
@@ -187,6 +196,7 @@ func (g *Game) init() {
 		buttonHeight,
 		"MONTHLY",
 		common.SmallFontSize,
+		buttonColor2,
 	)
 
 	g.backButton = newButton(
@@ -196,6 +206,7 @@ func (g *Game) init() {
 		buttonHeight,
 		"BACK",
 		common.SmallFontSize,
+		buttonColor2,
 	)
 
 	g.submitScoreButton = newButton(
@@ -205,6 +216,7 @@ func (g *Game) init() {
 		40,
 		"SUBMIT",
 		common.MiddleFontSize,
+		buttonColor1,
 	)
 }
 
@@ -291,12 +303,10 @@ func (g *Game) Update() error {
 			}
 			g.hitPlayer.Play()
 			g.mode = ModeGameOver
-			g.gameoverCount = 30
+			g.gameoverCount = 0
 		}
 	case ModeGameOver:
-		if g.gameoverCount > 0 {
-			g.gameoverCount--
-		}
+		g.gameoverCount++
 
 		// Input
 		runes := ebiten.AppendInputChars(nil)
@@ -317,8 +327,9 @@ func (g *Game) Update() error {
 		}
 		if g.submitScoreButton.IsClicked() || inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
 			g.submitScore(playerName)
+			return nil
 		}
-		if g.gameoverCount == 0 && g.isKeyJustPressed() {
+		if g.gameoverCount > 30 && g.isKeyJustPressed() {
 			g.init()
 			g.mode = ModeTitle
 		}
@@ -424,8 +435,16 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		texts = "\n\n\n\nPRESS SPACE KEY\n\nOR A/B BUTTON\n\nOR TOUCH SCREEN\n\nPRESS R FOR RANKING"
 		g.rankingButton.Draw(screen)
 	case ModeGameOver:
-		texts = "\nENTER OR SUBMIT YOUR NAME:\n\n" + g.playerName + "_\n\n\n\n\n\nPRESS KEY TO CONTINUE"
-		g.submitScoreButton.Draw(screen)
+		if g.scoreSubmitted {
+			texts = "\nSCORE SUBMITTED!\n\n\n\n\n\n\n\nPRESS KEY TO CONTINUE"
+		} else {
+			cursor := " "
+			if g.gameoverCount%30 < 15 {
+				cursor = "_"
+			}
+			texts = "\nENTER OR SUBMIT YOUR NAME:\n\n" + g.playerName + cursor + "\n\n\n\n\n\nPRESS KEY TO CONTINUE"
+			g.submitScoreButton.Draw(screen)
+		}
 	}
 
 	op := &text.DrawOptions{}
