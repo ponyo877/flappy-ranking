@@ -4,10 +4,10 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/ponyo877/flappy-standings/server/adapter"
-	"github.com/ponyo877/flappy-standings/server/database"
-	"github.com/ponyo877/flappy-standings/server/repository"
-	"github.com/ponyo877/flappy-standings/server/usecase"
+	"github.com/ponyo877/flappy-ranking/server/adapter"
+	"github.com/ponyo877/flappy-ranking/server/database"
+	"github.com/ponyo877/flappy-ranking/server/repository"
+	"github.com/ponyo877/flappy-ranking/server/usecase"
 )
 
 func main() {

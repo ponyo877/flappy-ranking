@@ -3,7 +3,7 @@ package adapter
 import (
 	"time"
 
-	"github.com/ponyo877/flappy-standings/common"
+	"github.com/ponyo877/flappy-ranking/common"
 )
 
 type Usecase interface {

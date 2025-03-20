@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/ponyo877/flappy-standings/common"
+	"github.com/ponyo877/flappy-ranking/common"
 )
 
 func (g *Game) fetchToken() {

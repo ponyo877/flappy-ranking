@@ -36,7 +36,7 @@ import (
 	resources "github.com/hajimehoshi/ebiten/v2/examples/resources/images/flappy"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
-	"github.com/ponyo877/flappy-standings/common"
+	"github.com/ponyo877/flappy-ranking/common"
 )
 
 var (

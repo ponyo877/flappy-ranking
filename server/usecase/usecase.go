@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ponyo877/flappy-standings/common"
-	"github.com/ponyo877/flappy-standings/server/adapter"
+	"github.com/ponyo877/flappy-ranking/common"
+	"github.com/ponyo877/flappy-ranking/server/adapter"
 )
 
 type ScoreUsecase struct {

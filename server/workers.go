@@ -7,9 +7,9 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/ponyo877/flappy-standings/server/adapter"
-	"github.com/ponyo877/flappy-standings/server/repository"
-	"github.com/ponyo877/flappy-standings/server/usecase"
+	"github.com/ponyo877/flappy-ranking/server/adapter"
+	"github.com/ponyo877/flappy-ranking/server/repository"
+	"github.com/ponyo877/flappy-ranking/server/usecase"
 	"github.com/syumai/workers"
 
 	_ "github.com/syumai/workers/cloudflare/d1" // register driver
