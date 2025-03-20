@@ -1,0 +1,22 @@
+name = "flappy-ranking"
+main = "server/workers.go"
+compatibility_date = "2025-03-20"
+
+[build]
+command = "go build -o ./build/worker.js -tags js,wasm ./server/workers.go"
+
+[[d1_databases]]
+binding = "FLAPPY_DB"
+database_name = "flappy_ranking"
+database_id = "dummy-database-id" 
+[vars]
+ENVIRONMENT = "production"
+
+# CORSの設定
+[[routes]]
+pattern = "*"
+script = "server/workers.go"
+[routes.headers]
+Access-Control-Allow-Origin = "*"
+Access-Control-Allow-Methods = "GET, POST, OPTIONS"
+Access-Control-Allow-Headers = "Content-Type"

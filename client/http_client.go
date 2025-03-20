@@ -11,7 +11,7 @@ import (
 )
 
 func (g *Game) fetchToken() {
-	resp, err := http.Post(host.JoinPath("tokens").String(), "application/json", nil)
+	resp, err := http.Post(host.JoinPath("tokens").String(), "application/json", bytes.NewBuffer([]byte("{}")))
 	if err != nil {
 		log.Printf("Failed to get token: %v", err)
 		return

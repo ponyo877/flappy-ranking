@@ -3,10 +3,11 @@ module github.com/ponyo877/flappy-standings
 go 1.23.1
 
 require (
-	github.com/go-sql-driver/mysql v1.8.1
+	github.com/go-sql-driver/mysql v1.9.0
 	github.com/hajimehoshi/ebiten/v2 v2.8.4
 	github.com/oklog/ulid/v2 v2.1.0
 	github.com/stretchr/testify v1.9.0
+	github.com/syumai/workers v0.28.1
 )
 
 require (
