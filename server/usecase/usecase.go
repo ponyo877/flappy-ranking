@@ -3,6 +3,7 @@ package usecase
 import (
 	"fmt"
 	"time"
+	_ "time/tzdata" // https://github.com/golang/go/issues/44408
 
 	"github.com/ponyo877/flappy-ranking/common"
 	"github.com/ponyo877/flappy-ranking/server/adapter"
@@ -26,23 +27,29 @@ func (u *ScoreUsecase) RegisterSession(token, pipeKey string) error {
 
 func (u *ScoreUsecase) ListScore(period string) ([]*common.Score, error) {
 	limit := 10
-	startTime := u.calcStarTime(time.Now(), period)
+	startTime, err := u.calcStarTime(time.Now(), period)
+	if err != nil {
+		return nil, err
+	}
 	return u.repository.ListScore(startTime, limit)
 }
 
-func (u *ScoreUsecase) calcStarTime(now time.Time, period string) time.Time {
-	jst, _ := time.LoadLocation("Asia/Tokyo")
+func (u *ScoreUsecase) calcStarTime(now time.Time, period string) (time.Time, error) {
+	jst, err := time.LoadLocation("Asia/Tokyo")
+	if err != nil {
+		return time.Time{}, err
+	}
 	todayHead := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, jst)
 	weekdayDiff := int(now.Weekday()) - int(time.Sunday)
 	switch period {
 	case "DAILY":
-		return todayHead
+		return todayHead, nil
 	case "WEEKLY":
-		return todayHead.AddDate(0, 0, -weekdayDiff).In(jst)
+		return todayHead.AddDate(0, 0, -weekdayDiff).In(jst), nil
 	case "MONTHLY":
-		return time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, jst)
+		return time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, jst), nil
 	default:
-		return time.Time{}
+		return time.Time{}, nil
 	}
 }
 

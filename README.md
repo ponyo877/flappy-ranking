@@ -64,7 +64,7 @@ To run Workers locally:
 wrangler dev
 ```
 
-To run the client locally, set the `serverEndpoint` variable in `client/main.go` to your local Workers endpoint (usually `http://localhost:8080`).
+To run the client locally, set the `serverEndpoint` variable in `client/main.go` to your local Workers endpoint (usually `http://localhost:8787`).
 
 ## License
 

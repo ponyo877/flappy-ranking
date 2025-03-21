@@ -15,7 +15,7 @@ import (
 	_ "github.com/syumai/workers/cloudflare/d1" // register driver
 )
 
-const dbName = "flappy-db"
+const dbName = "FlappyDB"
 
 func main() {
 	corsMiddleware := func(next http.Handler) http.Handler {

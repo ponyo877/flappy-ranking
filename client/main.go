@@ -44,7 +44,7 @@ var (
 	tilesImage       *ebiten.Image
 	arcadeFaceSource *text.GoTextFaceSource
 	host             *url.URL
-	serverEndpoint   = "http://localhost:8080"
+	serverEndpoint   = "http://localhost:8787"
 	buttonColor1     = color.RGBA{0x60, 0x80, 0xa0, 0xff}
 	buttonColor2     = color.RGBA{0x60, 0x60, 0x80, 0xff}
 )

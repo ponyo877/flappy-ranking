@@ -7,9 +7,10 @@ CREATE TABLE flappy.scores (
 );
 
 CREATE TABLE flappy.sessions (
-    id         INT         AUTO_INCREMENT PRIMARY KEY,
-    token      VARCHAR(26) NOT NULL,
-    pipe_key   VARCHAR(26) NOT NULL,
-    created_at TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    id          INT         AUTO_INCREMENT PRIMARY KEY,
+    token       VARCHAR(26) NOT NULL,
+    pipe_key    VARCHAR(26) NOT NULL,
+    finished_at TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at  TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_token (token)
 );

@@ -21,6 +21,13 @@
 go.work
 go.work.sum
 
+# syumai/workers
+build
+node_modules
+.wrangler
+wrangler.toml
+Makefile
+
 # env file
 .env
 .envrc

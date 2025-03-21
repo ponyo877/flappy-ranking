@@ -84,7 +84,7 @@ func TestScoreUsecase_calcStarTime(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := u.calcStarTime(tt.args.now, tt.args.period)
+			got, _ := u.calcStarTime(tt.args.now, tt.args.period)
 			assert.Equal(t, tt.want, got)
 		})
 	}

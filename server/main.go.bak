@@ -22,7 +22,7 @@ func main() {
 	mux.HandleFunc("POST /tokens", adapter.GenerateTokenHandler)
 	mux.HandleFunc("GET /scores", adapter.ListScoreHandler)
 	mux.HandleFunc("POST /scores/{token}", adapter.RegisterScoreHandler)
-	if err := http.ListenAndServe(":8080", mux); err != nil {
+	if err := http.ListenAndServe(":8787", mux); err != nil {
 		log.Fatalf("failed to start server: %v", err)
 	}
 }
