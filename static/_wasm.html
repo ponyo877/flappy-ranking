@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html style="height: 100%; margin: 0; padding: 0;">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            padding: 0 24px;
+        }
+    </style>
+</head>
+<body style="background-color: rgb(0, 0, 0); height: 100%; margin: 0; padding: 0;"></body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+    <script src="wasm_exec.js"></script>
+    <script>
+        window.addEventListener('DOMContentLoaded', async () => {
+            const go = new Go();
+            // unzip main.wasm.gz
+            const response = await fetch("/main.wasm.gz");
+            const compressedData = await response.arrayBuffer();
+            const decompressedData = new Uint8Array(pako.ungzip(compressedData));
+            const wasmBlob = new Blob([decompressedData], { type: "application/wasm" });
+            const wasmUrl = URL.createObjectURL(wasmBlob);
+            const result = await WebAssembly.instantiateStreaming(await fetch(wasmUrl), go.importObject).catch((err) => {
+                console.error(err);
+            });
+            document.getElementById('loading').remove();
+            go.run(result.instance);
+        });
+    </script>
+    <p id="loading">Loading...</p>
+</body>
+</html>

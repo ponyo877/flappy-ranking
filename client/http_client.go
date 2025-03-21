@@ -11,7 +11,7 @@ import (
 )
 
 func (g *Game) fetchToken() {
-	resp, err := http.Post(host.JoinPath("tokens").String(), "application/json", nil)
+	resp, err := http.Post(endpoint.JoinPath("tokens").String(), "application/json", nil)
 	if err != nil {
 		log.Printf("Failed to get token: %v", err)
 		return
@@ -40,7 +40,7 @@ func (g *Game) fetchToken() {
 
 func (g *Game) fetchRanking() {
 	g.fetchingRanking = true
-	endpoint := host.JoinPath("scores")
+	endpoint := endpoint.JoinPath("scores")
 	q := endpoint.Query()
 	q.Set("period", g.rankingPeriod)
 	endpoint.RawQuery = q.Encode()
@@ -91,7 +91,7 @@ func (g *Game) submitScore(playerName string) {
 		log.Printf("Failed to marshal score data: %v", err)
 		return
 	}
-	resp, err := http.Post(host.JoinPath("scores", g.token).String(), "application/json", bytes.NewBuffer(jsonData))
+	resp, err := http.Post(endpoint.JoinPath("scores", g.token).String(), "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		g.errorMessage = "Network error"
 		log.Printf("Failed to submit score: %v", err)
@@ -109,7 +109,7 @@ func (g *Game) submitScore(playerName string) {
 }
 
 func (g *Game) finishSession() {
-	resp, err := http.Post(host.JoinPath("sessions", g.token).String(), "application/json", nil)
+	resp, err := http.Post(endpoint.JoinPath("sessions", g.token).String(), "application/json", nil)
 	if err != nil {
 		log.Printf("Failed to create request: %v", err)
 		return

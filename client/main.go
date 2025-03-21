@@ -43,10 +43,10 @@ var (
 	gopherImage      *ebiten.Image
 	tilesImage       *ebiten.Image
 	arcadeFaceSource *text.GoTextFaceSource
-	host             *url.URL
-	serverEndpoint   = "http://localhost:8787"
 	buttonColor1     = color.RGBA{0x60, 0x80, 0xa0, 0xff}
 	buttonColor2     = color.RGBA{0x60, 0x60, 0x80, 0xff}
+	endpoint         *url.URL
+	serverURL        string
 )
 
 func init() {
@@ -66,7 +66,7 @@ func init() {
 		log.Fatal(err)
 	}
 	arcadeFaceSource = s
-	host, err = url.Parse(serverEndpoint)
+	endpoint, err = url.Parse(serverURL)
 	if err != nil {
 		log.Fatal(err)
 	}
