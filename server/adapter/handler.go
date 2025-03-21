@@ -95,6 +95,30 @@ func (s *Adapter) RegisterScoreHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (s *Adapter) FinishSessionHandler(w http.ResponseWriter, r *http.Request) {
+	token := r.PathValue("token")
+	if token == "" {
+		log.Printf("Token not provided in path")
+		http.Error(w, "Token not provided", http.StatusBadRequest)
+		return
+	}
+	if err := s.usecase.FinishSession(token); err != nil {
+		log.Printf("Failed to finish session: %v", err)
+		http.Error(w, "Failed to finish session", http.StatusInternalServerError)
+		return
+	}
+	responseBody := struct {
+		Status string `json:"status"`
+	}{
+		Status: "ok",
+	}
+	if err := json.NewEncoder(w).Encode(responseBody); err != nil {
+		log.Printf("Failed to encode response body: %v", err)
+		http.Error(w, "Failed to encode response body", http.StatusInternalServerError)
+		return
+	}
+}
+
 type ScoreJSON struct {
 	Rank        int       `json:"rank"`
 	DisplayName string    `json:"display_name"`

@@ -1,7 +1,6 @@
 package common
 
 import (
-	"log"
 	"math/rand/v2"
 	"time"
 )
@@ -96,7 +95,6 @@ func (o *Object) Hit() bool {
 
 func (o *Object) IsValidTimeDiff(startTime, endTime time.Time) bool {
 	diffSecond := int(endTime.Sub(startTime).Seconds())
-	// PipeStartOffsetX * TileSize * Unit は最初のパイプまでのピクセル単位距離（16倍）
 	// firstPipeDistance := PipeStartOffsetX * TileSize * Unit
 	gameSec60FPS := o.X16 / DeltaX16 / 60
 
@@ -108,7 +106,7 @@ func (o *Object) IsValidTimeDiff(startTime, endTime time.Time) bool {
 	minTime := gameSec60FPS + initTime
 	// 30FPS Time
 	maxTime := (gameSec60FPS + intervalSec60FPS + initTime) * 2
-	log.Printf("diffSecond: %d, minTime: %d, maxTime: %d", diffSecond, minTime, maxTime)
+	// log.Printf("diffSecond: %d, minTime: %d, maxTime: %d", diffSecond, minTime, maxTime)
 
 	return minTime <= diffSecond && diffSecond <= maxTime
 }

@@ -11,7 +11,7 @@ import (
 )
 
 func (g *Game) fetchToken() {
-	resp, err := http.Post(host.JoinPath("tokens").String(), "application/json", bytes.NewBuffer([]byte("{}")))
+	resp, err := http.Post(host.JoinPath("tokens").String(), "application/json", nil)
 	if err != nil {
 		log.Printf("Failed to get token: %v", err)
 		return
@@ -28,16 +28,18 @@ func (g *Game) fetchToken() {
 		return
 	}
 
+	if resp.StatusCode != http.StatusOK {
+		log.Printf("Failed to fetch token: %s", resp.Status)
+		return
+	}
+
 	g.token = result.Token
 	g.pipeKey = result.PipeKey
-	log.Printf("Got token: %s, pipeKey: %s", g.token, g.pipeKey)
+	// log.Printf("Got token: %s, pipeKey: %s", g.token, g.pipeKey)
 }
 
-// ランキング取得関数
 func (g *Game) fetchRanking() {
 	g.fetchingRanking = true
-
-	// URLを正しく構築
 	endpoint := host.JoinPath("scores")
 	q := endpoint.Query()
 	q.Set("period", g.rankingPeriod)
@@ -74,7 +76,6 @@ func (g *Game) fetchRanking() {
 	g.fetchingRanking = false
 }
 
-// スコア送信関数
 func (g *Game) submitScore(playerName string) {
 	data := struct {
 		DisplayName string `json:"displayName"`
@@ -104,5 +105,20 @@ func (g *Game) submitScore(playerName string) {
 		return
 	}
 	g.scoreSubmitted = true
-	log.Printf("Score submitted successfully")
+	// log.Printf("Score submitted successfully")
+}
+
+func (g *Game) finishSession() {
+	resp, err := http.Post(host.JoinPath("sessions", g.token).String(), "application/json", nil)
+	if err != nil {
+		log.Printf("Failed to create request: %v", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		log.Printf("Failed to finish session: %s", resp.Status)
+		return
+	}
+	// log.Printf("Session finished successfully")
 }

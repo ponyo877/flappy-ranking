@@ -261,9 +261,9 @@ func (g *Game) Update() error {
 	switch g.mode {
 	case ModeTitle:
 		if g.rankingButton.IsClicked() || inpututil.IsKeyJustPressed(ebiten.KeyR) {
-			g.fetchRanking()
-			g.mode = ModeRanking
 			g.rankingPeriod = "DAILY"
+			go g.fetchRanking()
+			g.mode = ModeRanking
 			return nil
 		}
 
@@ -297,13 +297,14 @@ func (g *Game) Update() error {
 		}
 
 		if g.obj.Hit() {
-			log.Printf("debug jumpHistory: %v", g.jumpHistory)
+			// log.Printf("debug jumpHistory: %v", g.jumpHistory)
 			if err := g.hitPlayer.Rewind(); err != nil {
 				return err
 			}
 			g.hitPlayer.Play()
 			g.mode = ModeGameOver
 			g.gameoverCount = 0
+			g.finishSession()
 		}
 	case ModeGameOver:
 		g.gameoverCount++

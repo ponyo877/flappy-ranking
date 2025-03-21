@@ -27,6 +27,7 @@ node_modules
 .wrangler
 wrangler.toml
 Makefile
+package*.json
 
 # env file
 .env

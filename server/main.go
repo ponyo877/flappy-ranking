@@ -43,6 +43,7 @@ func main() {
 	http.HandleFunc("POST /tokens", adapter.GenerateTokenHandler)
 	http.HandleFunc("GET /scores", adapter.ListScoreHandler)
 	http.HandleFunc("POST /scores/{token}", adapter.RegisterScoreHandler)
+	http.HandleFunc("POST /sessions/{token}", adapter.FinishSessionHandler)
 
 	handler := corsMiddleware(http.DefaultServeMux)
 	workers.Serve(handler)

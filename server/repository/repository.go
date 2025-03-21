@@ -23,6 +23,14 @@ type Score struct {
 	CreatedAt   uint64 `db:"created_at"`
 }
 
+type Session struct {
+	ID         int    `db:"id"`
+	Token      string `db:"token"`
+	PipeKey    string `db:"pipe_key"`
+	FinishedAt uint64 `db:"finished_at"`
+	CreatedAt  uint64 `db:"created_at"`
+}
+
 func (r *ScoreRepository) CreateScore(displayName string, score int) error {
 	query := "INSERT INTO scores (display_name, score, created_at) VALUES (?, ?, ?)"
 	now := time.Now().Unix()
@@ -72,12 +80,20 @@ func (r *ScoreRepository) ListScore(startDate time.Time, limit int) ([]*common.S
 	return scores, nil
 }
 
-func (r *ScoreRepository) GetSession(token string) (string, time.Time, error) {
-	query := "SELECT pipe_key, created_at FROM sessions WHERE token = ?"
-	var pipeKey string
-	var createdAt uint64
-	if err := r.db.QueryRow(query, token).Scan(&pipeKey, &createdAt); err != nil {
-		return "", time.Time{}, err
+func (r *ScoreRepository) GetSession(token string) (*common.Session, error) {
+	query := "SELECT * FROM sessions WHERE token = ?"
+	var s Session
+	if err := r.db.QueryRow(query, token).Scan(&s.ID, &s.Token, &s.PipeKey, &s.FinishedAt, &s.CreatedAt); err != nil {
+		return nil, err
 	}
-	return pipeKey, time.Unix(int64(createdAt), 0), nil
+	return common.NewSession(s.Token, s.PipeKey, time.Unix(int64(s.FinishedAt), 0), time.Unix(int64(s.CreatedAt), 0)), nil
+}
+
+func (r *ScoreRepository) UpdateSessionFinishedAt(token string) error {
+	query := "UPDATE sessions SET finished_at = ? WHERE token = ?"
+	now := time.Now().Unix()
+	if _, err := r.db.Exec(query, now, token); err != nil {
+		return err
+	}
+	return nil
 }

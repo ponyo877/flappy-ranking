@@ -54,16 +54,15 @@ func (u *ScoreUsecase) calcStarTime(now time.Time, period string) (time.Time, er
 }
 
 func (u *ScoreUsecase) CalcScore(jumpHistory []int, token string) (int, error) {
-	pipeKey, startTime, err := u.repository.GetSession(token)
+	s, err := u.repository.GetSession(token)
 	if err != nil {
 		return 0, err
 	}
-	obj := u.simulateObject(jumpHistory, pipeKey)
-	endTime := time.Now()
+	obj := u.simulateObject(jumpHistory, s.PipeKey)
 
 	// Validate Play Time
-	if !obj.IsValidTimeDiff(startTime, endTime) {
-		return 0, fmt.Errorf("invalid end time: startTime=%v, endTime=%v", startTime, endTime)
+	if !obj.IsValidTimeDiff(s.CreatedAt, s.FinishedAt) {
+		return 0, fmt.Errorf("invalid end time: startTime=%v, endTime=%v", s.CreatedAt, s.FinishedAt)
 	}
 	return obj.Score(), nil
 }
@@ -89,4 +88,8 @@ func (u *ScoreUsecase) simulateObject(jumpHistory []int, pipeKey string) *common
 		}
 	}
 	return obj
+}
+
+func (u *ScoreUsecase) FinishSession(token string) error {
+	return u.repository.UpdateSessionFinishedAt(token)
 }
