@@ -20,13 +20,27 @@
     <link rel="icon" href="/images/favicon.png" type="image/png">
     <link rel="alternate" hreflang="en" href="TODO: 公開したURL">
     <link rel="alternate" hreflang="ja" href="TODO: 公開したURL">
+    <style>
+        p.img {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+        }
+        p.img img, p.img video {
+            max-width: 100%;
+            height: auto;
+        }
+        p.img.thumbnail img, p.img iframe, iframe[src^="https://www.youtube.com/embed/"], iframe[src^="https://player.vimeo.com/video/"] {
+            max-width: 100%;
+        }
+    </style>
 </head>
 
 <body style="overflow: visible;">
     <main>
         <article>
             <h1>Flappy Ranking</h1>
-            <p class="img"></p>
+            <p class="img">
                 <iframe src="/_wasm.html" width="640" height="480" allow="autoplay"></iframe>
             </p>
         </article>
