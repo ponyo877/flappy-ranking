@@ -432,7 +432,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	var texts string
 	switch g.mode {
 	case ModeTitle:
-		titleTexts = "FLAPPY GOPHER\nWITH STANDIGNS"
+		titleTexts = "FLAPPY GOPHER\nWITH RANKING"
 		texts = "\n\n\n\nPRESS SPACE KEY\n\nOR A/B BUTTON\n\nOR TOUCH SCREEN\n\nPRESS R FOR RANKING"
 		g.rankingButton.Draw(screen)
 	case ModeGameOver:

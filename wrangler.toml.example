@@ -1,0 +1,8 @@
+name = "flappy-ranking"
+compatibility_date = "2025-03-21"
+
+[[d1_databases]]
+binding = "FlappyDB"
+database_name = "flappy-ranking"
+database_id = "YOUR_DATABASE_ID"
+preview_database_id = "flappy-ranking-preview"

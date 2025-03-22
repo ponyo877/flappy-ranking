@@ -18,19 +18,6 @@ import (
 const dbName = "FlappyDB"
 
 func main() {
-	corsMiddleware := func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Access-Control-Allow-Origin", "*")
-			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS")
-			w.Header().Set("Access-Control-Allow-Headers", "*")
-			w.Header().Set("Access-Control-Max-Age", "86400")
-			if r.Method == http.MethodOptions {
-				w.WriteHeader(http.StatusOK)
-				return
-			}
-			next.ServeHTTP(w, r)
-		})
-	}
 	db, err := sql.Open("d1", dbName)
 	if err != nil {
 		log.Printf("failed to connect to database: %v", err)
@@ -41,11 +28,10 @@ func main() {
 	usecase := usecase.NewScoreUsecase(repository)
 	adapter := adapter.NewAdapter(usecase)
 
-	http.HandleFunc("POST /tokens", adapter.GenerateTokenHandler)
-	http.HandleFunc("GET /scores", adapter.ListScoreHandler)
-	http.HandleFunc("POST /scores/{token}", adapter.RegisterScoreHandler)
-	http.HandleFunc("POST /sessions/{token}", adapter.FinishSessionHandler)
+	http.HandleFunc("POST /api/tokens", adapter.GenerateTokenHandler)
+	http.HandleFunc("GET /api/scores", adapter.ListScoreHandler)
+	http.HandleFunc("POST /api/scores/{token}", adapter.RegisterScoreHandler)
+	http.HandleFunc("POST /api/sessions/{token}", adapter.FinishSessionHandler)
 
-	handler := corsMiddleware(http.DefaultServeMux)
-	workers.Serve(handler)
+	workers.Serve(nil)
 }
