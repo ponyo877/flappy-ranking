@@ -4,13 +4,15 @@
 
 This is a version of the Flappy Gopher game with added ranking functionality. Players can play the game and submit their scores to the server to participate in the rankings.
 
+https://flappy-ranking.pages.dev
+
 ## Technology Stack
 
 ### Client
 - [Ebiten](https://ebiten.org/) - A 2D game library written in Go
 
 ### Server
-- [Cloudflare Workers](https://workers.cloudflare.com/) - Serverless platform
+- [Cloudflare Pages](https://pages.cloudflare.com/) - Websites deploy platform and Serverless([Pages Functions](https://developers.cloudflare.com/pages/functions/))
 - [Cloudflare D1](https://developers.cloudflare.com/d1/) - SQLite-based serverless database
 - [github.com/syumai/workers](https://github.com/syumai/workers) - Library for developing Cloudflare Workers in Go
 
@@ -27,7 +29,7 @@ This is a version of the Flappy Gopher game with added ranking functionality. Pl
 1. Create a D1 database using the Wrangler CLI:
 
 ```bash
-wrangler d1 create flappy_ranking
+make create-db
 ```
 
 2. Set the created database ID in the `database_id` field of the wrangler.toml file.
@@ -35,36 +37,16 @@ wrangler d1 create flappy_ranking
 3. Apply the schema:
 
 ```bash
-wrangler d1 execute flappy_ranking --file ./storage/d1/schema.sql
+make init-db
 ```
 
 ### Build and Deploy
 
-1. Build and deploy the Workers application:
+Build and deploy the Workers application:
 
 ```bash
-wrangler deploy
+make build & make build-client & make deploy-client 
 ```
-
-2. After deployment, set the URL displayed in the Cloudflare Dashboard to the `serverEndpoint` variable in client/main.go.
-
-### Running the Client
-
-```bash
-go run ./client
-```
-
-## Development
-
-### Local Development
-
-To run Workers locally:
-
-```bash
-wrangler dev
-```
-
-To run the client locally, set the `serverEndpoint` variable in `client/main.go` to your local Workers endpoint (usually `http://localhost:8787`).
 
 ## License
 

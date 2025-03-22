@@ -105,7 +105,6 @@ type Game struct {
 	playerName   string
 	errorMessage string
 
-	// スコア送信成功フラグ
 	scoreSubmitted bool
 
 	rankings        []*common.Score
@@ -155,12 +154,12 @@ func (g *Game) init() {
 	g.scoreSubmitted = false
 
 	g.rankingButton = newButton(
-		common.ScreenWidth/2-80,
+		common.ScreenWidth/2-160,
 		common.ScreenHeight-100,
-		160,
-		40,
+		320,
+		60,
 		"RANKING",
-		common.MiddleFontSize,
+		common.FontSize,
 		buttonColor1,
 	)
 
@@ -210,12 +209,12 @@ func (g *Game) init() {
 	)
 
 	g.submitScoreButton = newButton(
-		common.ScreenWidth/2-80,
+		common.ScreenWidth/2-160,
 		common.ScreenHeight-250,
-		160,
-		40,
+		320,
+		60,
 		"SUBMIT",
-		common.MiddleFontSize,
+		common.FontSize,
 		buttonColor1,
 	)
 }

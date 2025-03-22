@@ -10,7 +10,7 @@ build:
 .PHONY: build-client
 build-client:
 	GOOS=js GOARCH=wasm go build -ldflags="-X 'main.serverURL='" -o ./static/main.wasm ./client/main.go ./client/http_client.go ./client/buttons.go
-	gzip ./static/main.wasm
+	gzip -f ./static/main.wasm
 
 .PHONY: deploy
 deploy:

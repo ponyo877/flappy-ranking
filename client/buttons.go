@@ -41,11 +41,14 @@ func (b *Button) IsClicked() bool {
 		}
 	}
 	touchIDs := []ebiten.TouchID{}
-	touchIDs = ebiten.AppendTouchIDs(touchIDs[:0])
+	touchIDs = inpututil.AppendJustPressedTouchIDs(touchIDs[:0])
+	if len(touchIDs) == 0 {
+		return false
+	}
 	for _, touchID := range touchIDs {
 		x, y := ebiten.TouchPosition(touchID)
 		if x >= b.X && x <= b.X+b.Width && y >= b.Y && y <= b.Y+b.Height {
-			return inpututil.IsTouchJustReleased(touchID)
+			return true
 		}
 	}
 	return false
